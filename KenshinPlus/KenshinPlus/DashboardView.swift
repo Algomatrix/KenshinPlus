@@ -10,19 +10,42 @@ import SwiftData
 
 struct DashboardView: View {
     var body: some View {
-        VStack {
-            HStack(spacing: 20) {
-                DataAtGlanceContainerSmall(title: "Body Weight", symbol: "figure", subtitle: "80 Kg", color: .indigo)
-                DataAtGlanceContainerSmall(title: "Body Fat", symbol: "figure.walk", subtitle: "19", color: .indigo)
+        NavigationStack {
+            ScrollView {
+                VStack {
+                    HStack(spacing: 20) {
+                        DataAtGlanceContainerSmall(title: "Body Weight", symbol: "figure", subtitle: "80 Kg", color: .indigo)
+                        DataAtGlanceContainerSmall(title: "Body Fat", symbol: "figure.walk", subtitle: "19", color: .indigo)
+                    }
+                    
+                    HStack(spacing: 20) {
+                        DataAtGlanceContainerSmall(title: "BMI", symbol: "figure", subtitle: "19", color: .mint)
+                        DataAtGlanceContainerSmall(title: "Height", symbol: "ruler", subtitle: "19", color: .mint)
+                    }
+                    
+                    HStack(spacing: 20) {
+                        NavigationLink(
+                            destination: BloodPressureView(title: "Blood Pressure", subtitle: "Systolic and Diastolic", symbol: "blood.pressure.cuff.badge.gauge.with.needle.fill", color: .red, frameHeight: 300, mockBloodPressureSamples: MockDataForPreview().mockSystolicBloodPressure())
+                        ) {
+                            DataAtGlanceContainerSmall(
+                                title: "Blood Pressure",
+                                symbol: "heart",
+                                subtitle: "Systolic and Diastolic",
+                                color: .red
+                            )
+                        }
+                    }
+                }
             }
-            
-            HStack(spacing: 20) {
-                DataAtGlanceContainerSmall(title: "BMI", symbol: "figure", subtitle: "19", color: .mint)
-                DataAtGlanceContainerSmall(title: "Height", symbol: "ruler", subtitle: "19", color: .mint)
-            }
+            .navigationTitle("Health Dashboard")
+            .padding()
         }
 //        .background(RoundedRectangle(cornerRadius: 12, style: .circular).fill(.tertiary.opacity(0.5)))
     }
+}
+
+#Preview {
+    DashboardView()
 }
 
 #Preview {
