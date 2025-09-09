@@ -34,6 +34,19 @@ struct DashboardView: View {
                                 color: .red
                             )
                         }
+                        let mockData = MockDataForPreview()
+                        let mockBloodData = mockData.mockBloodTestSeries()
+
+                        NavigationLink(
+                            destination: BloodTestChartView(data: mockBloodData)
+                        ) {
+                            DataAtGlanceContainerSmall(
+                                title: "Blood Test",
+                                symbol: "syringe.fill",
+                                subtitle: "RBC, WBC, etc",
+                                color: .red
+                            )
+                        }
                     }
                 }
             }
@@ -48,7 +61,7 @@ struct DashboardView: View {
     DashboardView()
 }
 
-#Preview {
-    DashboardView()
-        .modelContainer(for: Item.self, inMemory: true)
-}
+//#Preview {
+//    DashboardView()
+//        .modelContainer(for: Item.self, inMemory: true)
+//}

@@ -37,6 +37,9 @@ struct DataAtGlanceContainerSmall: View {
 
 #Preview {
     DataAtGlanceContainerSmall(title: "Body Weight", symbol: "figure", subtitle: "80 Kg", color: .indigo)
+    DataHoldingContainer(title: "RBC") {
+        HalfDonutChartView(value: 40, maxValue: 120)
+    }
 }
 
 /// A small container/card that hosts any content
@@ -48,7 +51,8 @@ struct DataHoldingContainer<Content: View>: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.white).bold()
+                .padding(.bottom, 10)
 
             // Content area with fixed height
             ZStack { content() }
@@ -57,7 +61,7 @@ struct DataHoldingContainer<Content: View>: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 14)
-                .fill(Color(.secondarySystemBackground))
+                .fill(Color(.black.opacity(0.9)))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14)

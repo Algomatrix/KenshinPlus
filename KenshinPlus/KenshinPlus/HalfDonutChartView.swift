@@ -10,55 +10,69 @@ import SwiftUI
 struct HalfDonutChartView: View {
     var value: Double
     var maxValue: Double
-    var lineWidth: CGFloat = 20
-    
-    // Thresholds for coloring
-    var lowThreshold: Double = 0.3   // 30% of max
-    var highThreshold: Double = 0.7  // 70% of max
-    
-    
+    var lineWidth: CGFloat = 16
+
+    // Thresholds for coloring (percent of max)
+    var lowThreshold: Double = 0.3
+    var highThreshold: Double = 0.7
+    var showLabel: Bool = true
+
     private var progress: Double {
-        value / maxValue
+        guard maxValue > 0 else { return 0 }
+        return max(0, min(1, value / maxValue))   // clamp 0...1
     }
-    
+
     private var color: Color {
         switch progress {
-        case ..<lowThreshold: return .red      // low values
-        case ..<highThreshold: return .yellow  // mid values
-        default: return .green                 // good values
+        case ..<lowThreshold: return .red
+        case ..<highThreshold: return .yellow
+        default: return .green
         }
     }
     
+    func colorFor(value: Double, normal: ClosedRange<Double>) -> Color {
+        if value < normal.lowerBound { return .orange }
+        if value > normal.upperBound { return .red }
+        return .green
+    }
+
     var body: some View {
         ZStack {
             // Background arc
             Circle()
                 .trim(from: 0.0, to: 0.5)
-                .rotation(Angle(degrees: 180))
-                .stroke(Color.gray.opacity(0.2), style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
-            
+                .rotation(.degrees(180))
+                .stroke(Color.gray.opacity(0.2),
+                        style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+
             // Foreground arc
             Circle()
-                .trim(from: 0.0, to: CGFloat(progress) * 0.5)
-                .rotation(Angle(degrees: 180))
-                .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
-            
-            // Value label
-            VStack {
-                Spacer()
+                .trim(from: 0.0, to: progress * 0.5)
+                .rotation(.degrees(180))
+                .stroke(color,
+                        style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+        }
+        // Half donut wants a 2:1 aspect; give it a fixed height that fits your small card
+        .aspectRatio(2, contentMode: .fit)
+        .frame(width: 130, height: 90)                // adjust to your container
+        .padding(lineWidth / 2)           // avoid clipping the stroke
+        .overlay(alignment: .bottom) {    // label stays inside without Spacer
+            if showLabel {
                 Text("\(Int(value)) / \(Int(maxValue))")
-                    .font(.headline)
-                    .padding()
+                    .font(.footnote)
+                    .foregroundStyle(.white)
+                    .padding(.bottom, 2)
             }
         }
-        .frame(width: 200, height: 120)
-        .aspectRatio(2, contentMode: .fit)   // 2:1 for a half-donut
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Value")
+        .accessibilityValue("\(Int(value)) of \(Int(maxValue))")
     }
 }
 
 #Preview {
     VStack(spacing: 30) {
-        DataHoldingContainer(title: "Data") {
+        DataHoldingContainer(title: "Hemoglobin") {
             HalfDonutChartView(value: 4, maxValue: 20)   // red
         }
         HalfDonutChartView(value: 12, maxValue: 20)  // yellow
