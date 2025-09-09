@@ -27,7 +27,7 @@ struct BloodTestChartView: View {
             VStack {
                 ZStack {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color(.black).opacity(0.8))
+                        .fill(Color(.secondarySystemBackground))
                     
                     VStack {
                         HStack {
@@ -99,6 +99,13 @@ struct BloodTestChartView: View {
                             y: .value("WBC", entry.sample.wbc)
                         )
                     }
+                    .chartYAxis {
+                        AxisMarks(position: .trailing, values: .automatic) { value in
+                            AxisGridLine()
+                            AxisValueLabel()
+                                .offset(x: 8)
+                        }
+                    }
                 }
                 
                 PutBarChartInContainer {
@@ -107,6 +114,13 @@ struct BloodTestChartView: View {
                             x: .value("Date", entry.date),
                             y: .value("RBC", entry.sample.rbc)
                         )
+                    }
+                    .chartYAxis {
+                        AxisMarks(position: .trailing, values: .automatic) { value in
+                            AxisGridLine()
+                            AxisValueLabel()
+                                .offset(x: 8)
+                        }
                     }
                 }
                 
@@ -117,6 +131,13 @@ struct BloodTestChartView: View {
                             y: .value("Hemoglobin", entry.sample.hemoglobin)
                         )
                     }
+                    .chartYAxis {
+                        AxisMarks(position: .trailing, values: .automatic) { value in
+                            AxisGridLine()
+                            AxisValueLabel()
+                                .offset(x: 8)
+                        }
+                    }
                 }
                 
                 PutBarChartInContainer {
@@ -126,8 +147,16 @@ struct BloodTestChartView: View {
                             y: .value("Hematocrit", entry.sample.hematocrit)
                         )
                     }
+                    .chartYAxis {
+                        AxisMarks(position: .trailing, values: .automatic) { value in
+                            AxisGridLine()
+                            AxisValueLabel()
+                                .offset(x: 8)
+                        }
+                    }
                 }
             }
+            .padding()
         }
     }
 }
