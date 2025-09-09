@@ -92,7 +92,7 @@ struct BloodTestChartView: View {
                     .padding()
                 }
                 
-                PutBarChartInContainer {
+                PutBarChartInContainer(title: "")  {
                     Chart(data, id: \.date) { entry in
                         BarMark (
                             x: .value("Date", entry.date),
@@ -108,7 +108,7 @@ struct BloodTestChartView: View {
                     }
                 }
                 
-                PutBarChartInContainer {
+                PutBarChartInContainer(title: "")  {
                     Chart(data, id: \.date) { entry in
                         BarMark (
                             x: .value("Date", entry.date),
@@ -124,7 +124,7 @@ struct BloodTestChartView: View {
                     }
                 }
                 
-                PutBarChartInContainer {
+                PutBarChartInContainer(title: "")  {
                     Chart(data, id: \.date) { entry in
                         BarMark (
                             x: .value("Date", entry.date),
@@ -140,7 +140,7 @@ struct BloodTestChartView: View {
                     }
                 }
                 
-                PutBarChartInContainer {
+                PutBarChartInContainer(title: "")  {
                     Chart(data, id: \.date) { entry in
                         BarMark (
                             x: .value("Date", entry.date),
@@ -162,14 +162,18 @@ struct BloodTestChartView: View {
 }
 
 struct PutBarChartInContainer<Content: View>: View {
+    let title: String?
     @ViewBuilder var content: () -> Content
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color(.secondarySystemBackground))
-            
-            content()
-                .padding()
+            VStack {
+                Text(title ?? "")
+                    .padding()
+                content()
+                    .padding()
+            }
         }
     }
 }
