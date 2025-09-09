@@ -9,7 +9,13 @@ import SwiftUI
 import SwiftData
 
 struct DashboardView: View {
+    let mockData = MockDataForPreview()
     var body: some View {
+        let mockBloodData = mockData.mockBloodTestSeries()
+        let mockLiverData = mockData.mockLiverTestSeries()
+        let mockKidneyData = mockData.mockKidneyTestSeries()
+        let mockMetabolismData = mockData.mockMetabolismTestSeries()
+
         NavigationStack {
             ScrollView {
                 VStack {
@@ -34,8 +40,6 @@ struct DashboardView: View {
                                 color: .red
                             )
                         }
-                        let mockData = MockDataForPreview()
-                        let mockBloodData = mockData.mockBloodTestSeries()
 
                         NavigationLink(
                             destination: BloodTestChartView(data: mockBloodData)
@@ -47,6 +51,81 @@ struct DashboardView: View {
                                 color: .red
                             )
                         }
+                    }
+                }
+                
+                // Liver and Uric Acid
+                HStack(spacing: 20) {
+                    NavigationLink(
+                        destination: LiverTestView(data: mockLiverData)
+                    ) {
+                        DataAtGlanceContainerSmall(
+                            title: "Liver Info",
+                            symbol: "chart.line.text.clipboard.fill",
+                            subtitle: "Systolic and Diastolic",
+                            color: .red
+                        )
+                    }
+                    
+                    NavigationLink(
+                        destination: KidneyTestView(data: mockKidneyData)
+                    ) {
+                        DataAtGlanceContainerSmall(
+                            title: "Uric Acid",
+                            symbol: "vial.viewfinder",
+                            subtitle: "Creatine and Uric Acid",
+                            color: .red
+                        )
+                    }
+                }
+                
+                // Metabolism and Cholesterol
+                HStack(spacing: 20) {
+                    NavigationLink(
+                        destination: MetabolicTestView(samples: mockMetabolismData)
+                    ) {
+                        DataAtGlanceContainerSmall(
+                            title: "Metabolism",
+                            symbol: "flame.fill",
+                            subtitle: "HbA1c, Fasting Glucose",
+                            color: .orange
+                        )
+                    }
+                    
+                    NavigationLink(
+                        destination: EmptyView()
+                    ) {
+                        DataAtGlanceContainerSmall(
+                            title: "Cholesterol",
+                            symbol: "heart.circle",
+                            subtitle: "Creatine and Uric Acid",
+                            color: .orange
+                        )
+                    }
+                }
+                
+                // Eyesight and Hearing
+                HStack(spacing: 20) {
+                    NavigationLink(
+                        destination: EmptyView()
+                    ) {
+                        DataAtGlanceContainerSmall(
+                            title: "Eyesight",
+                            symbol: "eye",
+                            subtitle: "Left and Right",
+                            color: .green
+                        )
+                    }
+                    
+                    NavigationLink(
+                        destination: EmptyView()
+                    ) {
+                        DataAtGlanceContainerSmall(
+                            title: "Hearing",
+                            symbol: "ear.badge.waveform",
+                            subtitle: "Left and Right",
+                            color: .green
+                        )
                     }
                 }
             }
