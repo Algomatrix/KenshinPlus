@@ -33,6 +33,11 @@ struct LiverTestSample {
     let albumin: Double  // g/dL
 }
 
+struct KidneyTestSample {
+    let uricAcid: Double     // mg/dL
+    let creatinine: Double   // mg/dL
+}
+
 @Observable class MockDataForPreview {
     func mockSystolicBloodPressure() -> [BloodPressureSample] {
         var mockSample: [BloodPressureSample] = []
@@ -86,6 +91,21 @@ struct LiverTestSample {
         return (0..<count).map { i in
             let date = cal.date(byAdding: .weekOfYear, value: -i, to: Date())!
             return (date, mockLiverTest())
+        }.sorted { $0.date < $1.date }
+    }
+    
+    func mockKidneyTest() -> KidneyTestSample {
+        return KidneyTestSample(
+            uricAcid: Double.random(in: 3.6...7.0),     // reference range mg/dL
+            creatinine: Double.random(in: 0.6...1.1)    // reference range mg/dL
+        )
+    }
+    
+    func mockKidneyTestSeries(count: Int = 6) -> [(date: Date, sample: KidneyTestSample)] {
+        let cal = Calendar.current
+        return (0..<count).map { i in
+            let date = cal.date(byAdding: .weekOfYear, value: -i, to: Date())!
+            return (date, mockKidneyTest())
         }.sorted { $0.date < $1.date }
     }
 }
