@@ -14,6 +14,16 @@ struct BloodPressureSample: Identifiable {
     let diastolic: Double
 }
 
+
+struct BloodTestSample: Identifiable {
+    var id = UUID()
+    var rbc: Double        // million/µL
+    var hemoglobin: Double // g/dL
+    var hematocrit: Double // %
+    var platelet: Double   // ×10³/µL
+    var wbc: Double        // ×10³/µL
+}
+
 @Observable class MockDataForPreview {
     func mockSystolicBloodPressure() -> [BloodPressureSample] {
         var mockSample: [BloodPressureSample] = []
@@ -32,5 +42,23 @@ struct BloodPressureSample: Identifiable {
 
         print("✅ Mock Blood Pressure Data generated")
         return mockSample
+    }
+
+    func mockBloodTest() -> BloodTestSample {
+        return BloodTestSample(
+            rbc: Double.random(in: 4.0...6.0),      // million/µL
+            hemoglobin: Double.random(in: 12.0...16.0), // g/dL
+            hematocrit: Double.random(in: 36.0...50.0), // %
+            platelet: Double.random(in: 150...450),     // ×10³/µL
+            wbc: Double.random(in: 4.0...11.0)         // ×10³/µL
+        )
+    }
+
+    func mockBloodTestSeries(count: Int = 6) -> [(date: Date, sample: BloodTestSample)] {
+        let cal = Calendar.current
+        return (0..<count).map { i in
+            let date = cal.date(byAdding: .weekOfYear, value: -i, to: Date())!
+            return (date, mockBloodTest())
+        }.sorted { $0.date < $1.date }
     }
 }

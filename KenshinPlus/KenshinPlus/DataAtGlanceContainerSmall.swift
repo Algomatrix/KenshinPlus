@@ -38,3 +38,30 @@ struct DataAtGlanceContainerSmall: View {
 #Preview {
     DataAtGlanceContainerSmall(title: "Body Weight", symbol: "figure", subtitle: "80 Kg", color: .indigo)
 }
+
+/// A small container/card that hosts any content
+struct DataHoldingContainer<Content: View>: View {
+    let title: String
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            // Content area with fixed height
+            ZStack { content() }
+                .frame(height: 90)
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color(.secondarySystemBackground))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.black.opacity(0.06))
+        )
+    }
+}
