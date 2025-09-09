@@ -51,7 +51,7 @@ struct DataHoldingContainer<Content: View>: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.caption)
-                .foregroundStyle(.white).bold()
+                .foregroundStyle(.secondary)
                 .padding(.bottom, 10)
 
             // Content area with fixed height
@@ -61,11 +61,8 @@ struct DataHoldingContainer<Content: View>: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 14)
-                .fill(Color(.black.opacity(0.9)))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(Color.black.opacity(0.06))
+                .fill(Color(.secondarySystemBackground))
+                .strokeBorder(style: .init(lineWidth: 0.2))
         )
     }
 }

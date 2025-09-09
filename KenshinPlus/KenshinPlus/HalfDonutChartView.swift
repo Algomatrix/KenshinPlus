@@ -59,8 +59,8 @@ struct HalfDonutChartView: View {
         .overlay(alignment: .bottom) {    // label stays inside without Spacer
             if showLabel {
                 Text("\(Int(value)) / \(Int(maxValue))")
-                    .font(.footnote)
-                    .foregroundStyle(.white)
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
                     .padding(.bottom, 2)
             }
         }
