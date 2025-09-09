@@ -38,6 +38,13 @@ struct KidneyTestSample {
     let creatinine: Double   // mg/dL
 }
 
+struct MetabolismTestSample: Identifiable {
+    var id = UUID()
+    let date: Date
+    let hba1c: Double           // %
+    let fastingGlucose: Double  // mg/dL
+}
+
 @Observable class MockDataForPreview {
     func mockSystolicBloodPressure() -> [BloodPressureSample] {
         var mockSample: [BloodPressureSample] = []
@@ -107,5 +114,31 @@ struct KidneyTestSample {
             let date = cal.date(byAdding: .weekOfYear, value: -i, to: Date())!
             return (date, mockKidneyTest())
         }.sorted { $0.date < $1.date }
+    }
+
+
+    func mockMetabolismTest(at date: Date = Date()) -> MetabolismTestSample {
+        MetabolismTestSample(
+            date: date,
+            hba1c: Double.random(in: 4.6...6.5).rounded(to: 1),   // %
+            fastingGlucose: Double.random(in: 70...110).rounded(to: 0) // mg/dL
+        )
+    }
+    
+    func mockMetabolismTestSeries(count: Int = 6) -> [MetabolismTestSample] {
+        let cal = Calendar.current
+        let samples = (0..<count).map { i -> MetabolismTestSample in
+            let date = cal.date(byAdding: .month, value: -i, to: Date())!
+            return mockMetabolismTest(at: date)
+        }
+        // Ascending by date for nicer charts
+        return samples.sorted { $0.date < $1.date }
+    }
+}
+
+extension Double {
+    func rounded(to places: Int = 0) -> Double {
+        let p = pow(10.0, Double(places))
+        return (self * p).rounded(.toNearestOrAwayFromZero) / p
     }
 }
