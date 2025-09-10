@@ -43,7 +43,7 @@ struct DashboardView: View {
                         }
 
                         NavigationLink(
-                            destination: BloodTestChartView(data: mockBloodData)
+                            destination: BloodTestView(data: mockBloodData)
                         ) {
                             DataAtGlanceContainerSmall(
                                 title: "Blood Test",
