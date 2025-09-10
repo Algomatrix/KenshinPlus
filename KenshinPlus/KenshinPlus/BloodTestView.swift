@@ -8,7 +8,7 @@
 import SwiftUI
 import Charts
 
-struct BloodTestChartView: View {
+struct BloodTestView: View {
     let data: [(date: Date, sample: BloodTestSample)]
     
     /// Get latest date and sample related to that date
@@ -180,5 +180,5 @@ struct PutBarChartInContainer<Content: View>: View {
 
 #Preview {
     let mock = MockDataForPreview()
-    return BloodTestChartView(data: mock.mockBloodTestSeries())
+    return BloodTestView(data: mock.mockBloodTestSeries())
 }

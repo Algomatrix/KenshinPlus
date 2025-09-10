@@ -38,6 +38,15 @@ struct KidneyTestSample {
     let creatinine: Double   // mg/dL
 }
 
+struct CholesterolTestSample: Identifiable {
+    var id = UUID()
+    let date: Date
+    let totalCholesterol: Double  // mg/dL
+    let ldl: Double               // mg/dL
+    let hdl: Double               // mg/dL
+    let triglycerides: Double     // mg/dL
+}
+
 struct MetabolismTestSample: Identifiable {
     var id = UUID()
     let date: Date
@@ -132,6 +141,27 @@ struct MetabolismTestSample: Identifiable {
             return mockMetabolismTest(at: date)
         }
         // Ascending by date for nicer charts
+        return samples.sorted { $0.date < $1.date }
+    }
+    
+    func mockCholesterolTest(at date: Date = Date()) -> CholesterolTestSample {
+        return CholesterolTestSample(
+            date: date,
+            totalCholesterol: Double.random(in: 150...240),     // mg/dL
+            ldl: Double.random(in: 70...160),                   // mg/dL
+            hdl: Double.random(in: 35...70),                    // mg/dL
+            triglycerides: Double.random(in: 80...200)          // mg/dL
+        )
+    }
+    
+    func mockCholesterolTestSeries(count: Int = 6) -> [CholesterolTestSample] {
+        let cal = Calendar.current
+        let samples = (0..<count).map { i -> CholesterolTestSample in
+            let date = cal.date(byAdding: .day, value: -i, to: Date())!
+            return mockCholesterolTest(at: date)
+        }
+
+        // ascending for better chart display
         return samples.sorted { $0.date < $1.date }
     }
 }
