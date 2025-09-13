@@ -161,23 +161,6 @@ struct BloodTestView: View {
     }
 }
 
-struct PutBarChartInContainer<Content: View>: View {
-    let title: String?
-    @ViewBuilder var content: () -> Content
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(.secondarySystemBackground))
-            VStack {
-                Text(title ?? "")
-                    .padding()
-                content()
-                    .padding()
-            }
-        }
-    }
-}
-
 #Preview {
     let mock = MockDataForPreview()
     return BloodTestView(data: mock.mockBloodTestSeries())
