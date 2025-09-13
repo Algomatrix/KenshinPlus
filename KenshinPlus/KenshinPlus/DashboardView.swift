@@ -106,6 +106,7 @@ struct DashboardView: View {
                 }
                 
                 // Eyesight and Hearing
+                // TODO: Write code for eye test view
                 HStack(spacing: 20) {
                     NavigationLink(
                         destination: EmptyView()
@@ -119,7 +120,7 @@ struct DashboardView: View {
                     }
                     
                     NavigationLink(
-                        destination: EmptyView()
+                        destination: HearingTestView(results: [HearingResult(ear: .allCases.randomElement()!, band: .allCases.randomElement()!, state: .allCases.randomElement()!)])
                     ) {
                         DataAtGlanceContainerSmall(
                             title: "Hearing",
