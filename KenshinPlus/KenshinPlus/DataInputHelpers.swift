@@ -60,6 +60,7 @@ struct LabeledNumberField: View {
         HStack(spacing: 8) {
             if let systemImage { Image(systemName: systemImage) }
             Text(title)
+                .scaledToFill()
             TextField(title,
                       value: $value,
                       format: .number.precision(.fractionLength(precision)))

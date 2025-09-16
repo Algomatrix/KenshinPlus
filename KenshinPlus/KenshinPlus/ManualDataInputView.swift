@@ -33,6 +33,11 @@ struct ManualDataInputView: View {
     @State private var fastingBloodGlucose: Double = 60.0
     @State private var hbA1c: Double = 4.0
 
+    @State private var totalCholesterol: Double = 195
+    @State private var hdl: Double = 52
+    @State private var ldl: Double = 118
+    @State private var triglycerides: Double = 140
+
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
@@ -75,12 +80,16 @@ struct ManualDataInputView: View {
                         uricAcid: $uricAcid
                     )
                 }
-
+                
                 PutBarChartInContainer(title: "Metabolism") {
                     ManualDataMetabolism(
                         fastingGlucoseMgdl: $fastingBloodGlucose,
                         hba1cPercent: $hbA1c
                     )
+                }
+                
+                PutBarChartInContainer(title: "Lipid Data") {
+                    ManualDataLipids(gender: $gender, totalCholesterol: $totalCholesterol, hdl: $hdl, ldl: $ldl, triglycerides: $triglycerides)
                 }
             }
             .padding()
@@ -813,6 +822,145 @@ struct ManualDataMetabolism: View {
                 (.yellow.opacity(0.8), "Prediabetes"),
                 (.red.opacity(0.75), "Diabetes"),
                 (.purple.opacity(0.7), "Very high")
+            ])
+        }
+    }
+}
+
+struct ManualDataLipids: View {
+    @Binding var gender: Gender
+
+    // Bind values from parent so it owns the truth
+    @Binding var totalCholesterol: Double      // mg/dL
+    @Binding var hdl: Double            // mg/dL
+    @Binding var ldl: Double            // mg/dL
+    @Binding var triglycerides: Double  // mg/dL
+
+    // ---- Domains (x-axis) ----
+    private let tcDomain: ClosedRange<Double> = 100...320
+    private let hdlDomain: ClosedRange<Double> = 20...100
+    private let ldlDomain: ClosedRange<Double> = 50...250
+    private let tgDomain: ClosedRange<Double>  = 30...600
+
+    // Total Cholesterol (mg/dL): <200 desirable, 200–239 borderline, ≥240 high
+    private var tcSegments: [RangeSeg] {
+        [
+            .init(label: "Desirable", start: tcDomain.lowerBound, end: 200, color: .green.opacity(0.7)),
+            .init(label: "Borderline", start: 200, end: 240, color: .yellow.opacity(0.8)),
+            .init(label: "High", start: 240, end: tcDomain.upperBound, color: .red.opacity(0.75))
+        ]
+    }
+
+    // HDL (mg/dL): low <40 (men) / <50 (women); ≥60 protective
+    private var hdlSegments: [RangeSeg] {
+        let lowCut = (gender == .Male) ? 40.0 : 50.0
+        return [
+            .init(label: "Low",        start: hdlDomain.lowerBound, end: lowCut, color: .red.opacity(0.75)),
+            .init(label: "Reference",  start: lowCut, end: 60,      color: .green.opacity(0.7)),
+            .init(label: "Protective", start: 60,     end: hdlDomain.upperBound, color: .blue.opacity(0.6))
+        ]
+    }
+
+    // LDL (mg/dL): <100 optimal, 100–129 near optimal, 130–159 borderline high, 160–189 high, ≥190 very high
+    private var ldlSegments: [RangeSeg] {
+        [
+            .init(label: "Optimal",       start: ldlDomain.lowerBound, end: 100, color: .green.opacity(0.7)),
+            .init(label: "Near optimal",  start: 100, end: 130, color: .teal.opacity(0.7)),
+            .init(label: "Borderline",    start: 130, end: 160, color: .yellow.opacity(0.8)),
+            .init(label: "High",          start: 160, end: 190, color: .orange.opacity(0.8)),
+            .init(label: "Very high",     start: 190, end: ldlDomain.upperBound, color: .red.opacity(0.75))
+        ]
+    }
+
+    // Triglycerides (mg/dL): <150 normal, 150–199 borderline, 200–499 high, ≥500 very high
+    private var tgSegments: [RangeSeg] {
+        [
+            .init(label: "Normal",        start: tgDomain.lowerBound, end: 150, color: .green.opacity(0.7)),
+            .init(label: "Borderline",    start: 150, end: 200, color: .yellow.opacity(0.8)),
+            .init(label: "High",          start: 200, end: 500, color: .orange.opacity(0.8)),
+            .init(label: "Very high",     start: 500, end: tgDomain.upperBound, color: .red.opacity(0.75))
+        ]
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+
+            // Total Cholesterol
+            LabeledNumberField(title: "Total Cholesterol",
+                               value: $totalCholesterol,
+                               precision: 0...0,
+                               unitText: "mg/dL",
+                               systemImage: "circle.grid.2x2",
+                               keyboard: .numberPad)
+            MeasurementBar(title: "Total Cholesterol",
+                           value: totalCholesterol,
+                           domain: tcDomain,
+                           segments: tcSegments,
+                           valueFormatter: { "\(Int($0)) mg/dL" })
+            LegendRow(items: [
+                (.green.opacity(0.7), "Desirable"),
+                (.yellow.opacity(0.8), "Borderline"),
+                (.red.opacity(0.75), "High")
+            ])
+            Divider()
+
+            // HDL
+            LabeledNumberField(title: "HDL",
+                               value: $hdl,
+                               precision: 0...0,
+                               unitText: "mg/dL",
+                               systemImage: "shield.lefthalf.fill",
+                               keyboard: .numberPad)
+            MeasurementBar(title: "HDL",
+                           value: hdl,
+                           domain: hdlDomain,
+                           segments: hdlSegments,
+                           valueFormatter: { "\(Int($0)) mg/dL" })
+            LegendRow(items: [
+                (.red.opacity(0.75), "Low"),
+                (.green.opacity(0.7), "Reference"),
+                (.blue.opacity(0.6), "Protective")
+            ])
+            Divider()
+
+            // LDL
+            LabeledNumberField(title: "LDL",
+                               value: $ldl,
+                               precision: 0...0,
+                               unitText: "mg/dL",
+                               systemImage: "triangle.lefthalf.filled",
+                               keyboard: .numberPad)
+            MeasurementBar(title: "LDL",
+                           value: ldl,
+                           domain: ldlDomain,
+                           segments: ldlSegments,
+                           valueFormatter: { "\(Int($0)) mg/dL" })
+            LegendRow(items: [
+                (.green.opacity(0.7), "Optimal"),
+                (.teal.opacity(0.7), "Near optimal"),
+                (.yellow.opacity(0.8), "Borderline"),
+                (.orange.opacity(0.8), "High"),
+                (.red.opacity(0.75), "Very high")
+            ])
+            Divider()
+
+            // Triglycerides
+            LabeledNumberField(title: "Triglycerides",
+                               value: $triglycerides,
+                               precision: 0...0,
+                               unitText: "mg/dL",
+                               systemImage: "drop.triangle",
+                               keyboard: .numberPad)
+            MeasurementBar(title: "Triglycerides",
+                           value: triglycerides,
+                           domain: tgDomain,
+                           segments: tgSegments,
+                           valueFormatter: { "\(Int($0)) mg/dL" })
+            LegendRow(items: [
+                (.green.opacity(0.7), "Normal"),
+                (.yellow.opacity(0.8), "Borderline"),
+                (.orange.opacity(0.8), "High"),
+                (.red.opacity(0.75), "Very high")
             ])
         }
     }
