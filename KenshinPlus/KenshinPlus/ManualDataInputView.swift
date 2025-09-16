@@ -17,10 +17,15 @@ struct ManualDataInputView: View {
     @State private var weightKg: Double = 65.0
     @State private var weightUnit: WeightUnit = .Kg
 
-    
     // Fat % and Abdominal girth
     @State private var fatPercent: Double = 20.0
     @State private var abdominalGirthCm: Double = 85.0
+    
+    @State private var ast: Double = 28
+    @State private var alt: Double = 32
+    @State private var ggt: Double = 42
+    @State private var totalProtein: Double = 7.2
+    @State private var albumin: Double = 4.4
 
     var body: some View {
         ScrollView {
@@ -44,6 +49,17 @@ struct ManualDataInputView: View {
 
                 PutBarChartInContainer(title: "Blood Test") {
                     ManualDataBloodTest(gender: $gender)
+                }
+
+                PutBarChartInContainer(title: "Liver Function") {
+                    ManualDataLiverFunction(
+                        gender: $gender,
+                        ast: $ast,
+                        alt: $alt,
+                        ggt: $ggt,
+                        totalProtein: $totalProtein,
+                        albumin: $albumin
+                    )
                 }
             }
             .padding()
@@ -471,6 +487,142 @@ struct ManualDataBloodTest: View {
                            valueFormatter: { String(format: "%.1f ×10³/µL", $0) })
             LegendRow(items: [(.green.opacity(0.7), "Reference"), (.red.opacity(0.7), "Low/High")])
         }
+    }
+}
+
+struct ManualDataLiverFunction: View {
+    @Binding var gender: Gender
+    
+    @Binding var ast: Double       // U/L
+    @Binding var alt: Double       // U/L
+    @Binding var ggt: Double       // U/L
+    @Binding var totalProtein: Double // g/dL
+    @Binding var albumin: Double      // g/dL
+
+    // -------- Domains (x-axis ranges) --------
+    private let astDomain: ClosedRange<Double> = 0...200
+    private let altDomain: ClosedRange<Double> = 0...200
+    private let ggtDomain: ClosedRange<Double> = 0...300
+    private let tpDomain:  ClosedRange<Double> = 4.0...9.5
+    private let albDomain: ClosedRange<Double> = 2.0...6.0
+
+    // AST (adult, typical lab): Ref ≤ 35 U/L; visualize mild vs marked elevation
+    private var astSegments: [RangeSeg] {
+        [
+            .init(label: "Reference", start: 0,  end: 35,  color: .green.opacity(0.7)),
+            .init(label: "Mild ↑",    start: 35, end: 120, color: .orange.opacity(0.7)),
+            .init(label: "Marked ↑",  start: 120,end: astDomain.upperBound, color: .red.opacity(0.7))
+        ]
+    }
+
+    // ALT (adult, typical lab): Ref ≤ 45 U/L (many labs 35–45)
+    private var altSegments: [RangeSeg] {
+        [
+            .init(label: "Reference", start: 0,  end: 45,  color: .green.opacity(0.7)),
+            .init(label: "Mild ↑",    start: 45, end: 120, color: .orange.opacity(0.7)),
+            .init(label: "Marked ↑",  start: 120,end: altDomain.upperBound, color: .red.opacity(0.7))
+        ]
+    }
+
+    // GGT is commonly higher in men
+    private var ggtSegments: [RangeSeg] {
+        switch gender {
+        case .Male:
+            return [
+                .init(label: "Reference", start: 0, end: 60,  color: .green.opacity(0.7)),
+                .init(label: "Mild ↑",    start: 60, end: 200, color: .orange.opacity(0.7)),
+                .init(label: "Marked ↑",  start: 200,end: ggtDomain.upperBound, color: .red.opacity(0.7))
+            ]
+        case .Female:
+            return [
+                .init(label: "Reference", start: 7,  end: 40,  color: .green.opacity(0.7)),
+                .init(label: "Mild ↑",    start: 40, end: 150, color: .orange.opacity(0.7)),
+                .init(label: "Marked ↑",  start: 150,end: ggtDomain.upperBound, color: .red.opacity(0.7))
+            ]
+        }
+    }
+
+    // Total Protein (adult): ~6.0–8.0 g/dL
+    private var tpSegments: [RangeSeg] {
+        [
+            .init(label: "Low",       start: tpDomain.lowerBound, end: 6.0, color: .red.opacity(0.7)),
+            .init(label: "Reference", start: 6.0,                 end: 8.0, color: .green.opacity(0.7)),
+            .init(label: "High",      start: 8.0,                 end: tpDomain.upperBound, color: .orange.opacity(0.7))
+        ]
+    }
+
+    // Albumin (adult): ~3.5–5.0 g/dL
+    private var albSegments: [RangeSeg] {
+        [
+            .init(label: "Low",       start: albDomain.lowerBound, end: 3.5, color: .red.opacity(0.7)),
+            .init(label: "Reference", start: 3.5,                  end: 5.0, color: .green.opacity(0.7)),
+            .init(label: "High",      start: 5.0,                  end: albDomain.upperBound, color: .orange.opacity(0.7))
+        ]
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+
+            // AST
+            LabeledNumberField(title: "AST (GOT)", value: $ast,
+                               precision: 0...0, unitText: "U/L", systemImage: "waveform.path.ecg", keyboard: .numberPad)
+            MeasurementBar(title: "AST (GOT)", value: ast, domain: astDomain, segments: astSegments,
+                           valueFormatter: { "\(Int($0)) U/L" })
+            LegendRow(items: [
+                (.green.opacity(0.7), "Reference"),
+                (.orange.opacity(0.7), "Mild ↑"),
+                (.red.opacity(0.7), "Marked ↑")
+            ])
+            Divider()
+
+            // ALT
+            LabeledNumberField(title: "ALT (GPT)", value: $alt,
+                               precision: 0...0, unitText: "U/L", systemImage: "waveform.path.ecg.rectangle", keyboard: .numberPad)
+            MeasurementBar(title: "ALT (GPT)", value: alt, domain: altDomain, segments: altSegments,
+                           valueFormatter: { "\(Int($0)) U/L" })
+            LegendRow(items: [
+                (.green.opacity(0.7), "Reference"),
+                (.orange.opacity(0.7), "Mild ↑"),
+                (.red.opacity(0.7), "Marked ↑")
+            ])
+            Divider()
+
+            // GGT
+            LabeledNumberField(title: "GGT (γ-GT)", value: $ggt,
+                               precision: 0...0, unitText: "U/L", systemImage: "waveform", keyboard: .numberPad)
+            MeasurementBar(title: "GGT (γ-GT)", value: ggt, domain: ggtDomain, segments: ggtSegments,
+                           valueFormatter: { "\(Int($0)) U/L" })
+            LegendRow(items: [
+                (.green.opacity(0.7), "Reference"),
+                (.orange.opacity(0.7), "Mild ↑"),
+                (.red.opacity(0.7), "Marked ↑")
+            ])
+            Divider()
+
+            // Total Protein
+            LabeledNumberField(title: "Total Protein", value: $totalProtein,
+                               precision: 0...1, unitText: "g/dL", systemImage: "square.grid.2x2", keyboard: .decimalPad)
+            MeasurementBar(title: "Total Protein", value: totalProtein, domain: tpDomain, segments: tpSegments,
+                           valueFormatter: { String(format: "%.1f g/dL", $0) })
+            LegendRow(items: [
+                (.green.opacity(0.7), "Reference"),
+                (.red.opacity(0.7),   "Low"),
+                (.orange.opacity(0.7),"High")
+            ])
+            Divider()
+
+            // Albumin
+            LabeledNumberField(title: "Albumin", value: $albumin,
+                               precision: 0...1, unitText: "g/dL", systemImage: "circle.grid.2x2", keyboard: .decimalPad)
+            MeasurementBar(title: "Albumin", value: albumin, domain: albDomain, segments: albSegments,
+                           valueFormatter: { String(format: "%.1f g/dL", $0) })
+            LegendRow(items: [
+                (.green.opacity(0.7), "Reference"),
+                (.red.opacity(0.7),   "Low"),
+                (.orange.opacity(0.7),"High")
+            ])
+        }
+        .padding(.vertical)
     }
 }
 
