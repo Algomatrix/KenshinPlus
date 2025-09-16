@@ -30,6 +30,9 @@ struct ManualDataInputView: View {
     @State private var creatine: Double = 0.98
     @State private var uricAcid: Double = 6.2
 
+    @State private var fastingBloodGlucose: Double = 60.0
+    @State private var hbA1c: Double = 4.0
+
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
@@ -70,6 +73,13 @@ struct ManualDataInputView: View {
                         gender: $gender,
                         creatinine: $creatine,
                         uricAcid: $uricAcid
+                    )
+                }
+
+                PutBarChartInContainer(title: "Metabolism") {
+                    ManualDataMetabolism(
+                        fastingGlucoseMgdl: $fastingBloodGlucose,
+                        hba1cPercent: $hbA1c
                     )
                 }
             }
@@ -692,7 +702,7 @@ struct ManualDataRenalUrate: View {
             // Creatinine
             LabeledNumberField(title: "Creatinine", value: $creatinine,
                                precision: 0...2, unitText: "mg/dL",
-                               systemImage: "square.grid.2x2", keyboard: .decimalPad)
+                               systemImage: "kidneys", keyboard: .decimalPad)
             MeasurementBar(title: "Creatinine",
                            value: creatinine,
                            domain: crDomain,
@@ -723,6 +733,90 @@ struct ManualDataRenalUrate: View {
     }
 }
 
+struct ManualDataMetabolism: View {
+    // Bind from parent so it owns the truth
+    @Binding var fastingGlucoseMgdl: Double   // mg/dL
+    @Binding var hba1cPercent: Double         // %, NGSP
+
+    // ---------- Domains ----------
+    private let gluDomain: ClosedRange<Double> = 50...300       // mg/dL
+    private let a1cDomain: ClosedRange<Double> = 4.0...14.0     // %
+
+    // Fasting Plasma Glucose (FPG), mg/dL
+    // <70 hypoglycemia flag (optional), 70–99 normal, 100–125 prediabetes (IFG), ≥126 diabetes
+    private var gluSegments: [RangeSeg] {
+        [
+            .init(label: "Low",        start: gluDomain.lowerBound, end: 70,  color: .cyan.opacity(0.7)),
+            .init(label: "Reference",  start: 70,  end: 100, color: .green.opacity(0.7)),
+            .init(label: "Prediabetes",start: 100, end: 126, color: .yellow.opacity(0.8)),
+            .init(label: "Diabetes",   start: 126, end: 200, color: .red.opacity(0.75)),
+            .init(label: "Very high",  start: 200, end: gluDomain.upperBound, color: .purple.opacity(0.7))
+        ]
+    }
+
+    // HbA1c (NGSP), %
+    // <5.7 normal, 5.7–6.4 prediabetes, ≥6.5 diabetes
+    private var a1cSegments: [RangeSeg] {
+        [
+            .init(label: "Reference",  start: 4.0, end: 5.7, color: .green.opacity(0.7)),
+            .init(label: "Prediabetes",start: 5.7, end: 6.5, color: .yellow.opacity(0.8)),
+            .init(label: "Diabetes",   start: 6.5, end: 10.0, color: .red.opacity(0.75)),
+            .init(label: "Very high",  start: 10.0, end: a1cDomain.upperBound, color: .purple.opacity(0.7))
+        ]
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            // --- Fasting Glucose ---
+            LabeledNumberField(
+                title: "Fasting Glucose",
+                value: $fastingGlucoseMgdl,
+                precision: 0...0,
+                unitText: "mg/dL",
+                systemImage: "drop.fill",
+                keyboard: .numberPad
+            )
+            MeasurementBar(
+                title: "Fasting Glucose",
+                value: fastingGlucoseMgdl,
+                domain: gluDomain,
+                segments: gluSegments,
+                valueFormatter: { "\(Int($0)) mg/dL" }
+            )
+            LegendRow(items: [
+                (.cyan.opacity(0.7), "Low"),
+                (.green.opacity(0.7), "Reference"),
+                (.yellow.opacity(0.8), "Prediabetes"),
+                (.red.opacity(0.75), "Diabetes"),
+                (.purple.opacity(0.7), "Very high")
+            ])
+
+            Divider()
+
+            // --- HbA1c (NGSP) ---
+            LabeledNumberField(
+                title: "HbA1c (NGSP)",
+                value: $hba1cPercent,
+                precision: 0...1,
+                unitText: "%",
+                keyboard: .decimalPad
+            )
+            MeasurementBar(
+                title: "HbA1c (NGSP)",
+                value: hba1cPercent,
+                domain: a1cDomain,
+                segments: a1cSegments,
+                valueFormatter: { String(format: "%.1f %%", $0) }
+            )
+            LegendRow(items: [
+                (.green.opacity(0.7), "Reference"),
+                (.yellow.opacity(0.8), "Prediabetes"),
+                (.red.opacity(0.75), "Diabetes"),
+                (.purple.opacity(0.7), "Very high")
+            ])
+        }
+    }
+}
 
 struct UnitPicker: View {
     @Binding var unit: LengthUnit
