@@ -41,6 +41,10 @@ struct ManualDataInputView: View {
                 PutBarChartInContainer(title: "Blood Pressure") {
                     ManualDataBloodPressure()
                 }
+
+                PutBarChartInContainer(title: "Blood Test") {
+                    ManualDataBloodTest(gender: $gender)
+                }
             }
             .padding()
         }
@@ -349,6 +353,126 @@ struct ManualDataBloodPressure: View {
     }
 }
 
+struct ManualDataBloodTest: View {
+    @Binding var gender: Gender
+
+    @State private var rbc: Double = 4.8        // x10^6/µL
+    @State private var hgb: Double = 14.0       // g/dL
+    @State private var hct: Double = 42.0       // %
+    @State private var plt: Double = 250        // x10^3/µL
+    @State private var wbc: Double = 6.0        // x10^3/µL
+    
+    // Domains
+    private let rbcDomain: ClosedRange<Double> = 3.0...7.5      // x10^6/µL
+    private let hgbDomain: ClosedRange<Double> = 8.0...20.0     // g/dL
+    private let hctDomain: ClosedRange<Double> = 25.0...60.0    // %
+    private let pltDomain: ClosedRange<Double> = 50.0...700.0   // x10^3/µL
+    private let wbcDomain: ClosedRange<Double> = 2.0...20.0     // x10^3/µL
+    
+    // Segments
+    private var rbcSegments: [RangeSeg] {
+        switch gender {
+        case .Male:
+            return [
+                .init(label: "Low", start: rbcDomain.lowerBound, end: 4.7, color: .red.opacity(0.7)),
+                .init(label: "Reference", start: 4.7, end: 6.1, color: .green.opacity(0.7)),
+                .init(label: "High", start: 6.1, end: rbcDomain.upperBound, color: .red.opacity(0.7))
+            ]
+        case .Female:
+            return [
+                .init(label: "Low", start: rbcDomain.lowerBound, end: 4.2, color: .red.opacity(0.7)),
+                .init(label: "Reference", start: 4.2, end: 5.4, color: .green.opacity(0.7)),
+                .init(label: "High", start: 5.4, end: rbcDomain.upperBound, color: .red.opacity(0.7))
+            ]
+        }
+    }
+
+    private var hgbSegments: [RangeSeg] {
+        switch gender {
+        case .Male:
+            return [
+                .init(label: "Low", start: hgbDomain.lowerBound, end: 13.5, color: .red.opacity(0.7)),
+                .init(label: "Reference", start: 13.5, end: 17.5, color: .green.opacity(0.7)),
+                .init(label: "High", start: 17.5, end: hgbDomain.upperBound, color: .red.opacity(0.7))
+            ]
+        case .Female:
+            return [
+                .init(label: "Low", start: hgbDomain.lowerBound, end: 12.0, color: .red.opacity(0.7)),
+                .init(label: "Reference", start: 12.0, end: 15.5, color: .green.opacity(0.7)),
+                .init(label: "High", start: 15.5, end: hgbDomain.upperBound, color: .red.opacity(0.7))
+            ]
+        }
+    }
+    
+    private var hctSegments: [RangeSeg] {
+        switch gender {
+        case .Male:
+            return [
+                .init(label: "Low", start: hctDomain.lowerBound, end: 41.0, color: .red.opacity(0.7)),
+                .init(label: "Reference", start: 41.0, end: 53.0, color: .green.opacity(0.7)),
+                .init(label: "High", start: 53.0, end: hctDomain.upperBound, color: .red.opacity(0.7))
+            ]
+        case .Female:
+            return [
+                .init(label: "Low", start: hctDomain.lowerBound, end: 36.0, color: .red.opacity(0.7)),
+                .init(label: "Reference", start: 36.0, end: 46.0, color: .green.opacity(0.7)),
+                .init(label: "High", start: 46.0, end: hctDomain.upperBound, color: .red.opacity(0.7))
+            ]
+        }
+    }
+    
+    private var pltSegments: [RangeSeg] {
+        [
+            .init(label: "Low", start: pltDomain.lowerBound, end: 150, color: .red.opacity(0.7)),
+            .init(label: "Reference", start: 150, end: 450, color: .green.opacity(0.7)),
+            .init(label: "High", start: 450, end: pltDomain.upperBound, color: .red.opacity(0.7))
+        ]
+    }
+    
+    private var wbcSegments: [RangeSeg] {
+        [
+            .init(label: "Low", start: wbcDomain.lowerBound, end: 4.0, color: .red.opacity(0.7)),
+            .init(label: "Reference", start: 4.0, end: 11.0, color: .green.opacity(0.7)),
+            .init(label: "High", start: 11.0, end: wbcDomain.upperBound, color: .red.opacity(0.7))
+        ]
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            // RBC
+            LabeledNumberField(title: "RBC", value: $rbc, precision: 0...2, unitText: "×10⁶/µL", systemImage: "drop.fill", keyboard: .decimalPad)
+            MeasurementBar(title: "RBC", value: rbc, domain: rbcDomain, segments: rbcSegments, valueFormatter: { String(format: "%.2f ×10⁶/µL", $0) })
+            LegendRow(items: [(.green.opacity(0.7), "Reference"), (.red.opacity(0.7), "Low/High")])
+            Divider()
+            
+            // Hemoglobin
+            LabeledNumberField(title: "Hemoglobin", value: $hgb, precision: 0...1, unitText: "g/dL", systemImage: "drop.circle", keyboard: .decimalPad)
+            MeasurementBar(title: "Hemoglobin", value: hgb, domain: hgbDomain, segments: hgbSegments, valueFormatter: { String(format: "%.1f g/dL", $0) })
+            LegendRow(items: [(.green.opacity(0.7), "Reference"), (.red.opacity(0.7), "Low/High")])
+            Divider()
+
+            // Hematocrit
+            LabeledNumberField(title: "Hematocrit", value: $hct, precision: 0...1, unitText: "%", systemImage: "gauge", keyboard: .decimalPad)
+            MeasurementBar(title: "Hematocrit", value: hct, domain: hctDomain, segments: hctSegments,
+                           valueFormatter: { String(format: "%.1f %%", $0) })
+            LegendRow(items: [(.green.opacity(0.7), "Reference"), (.red.opacity(0.7), "Low/High")])
+            Divider()
+
+            // Platelet
+            LabeledNumberField(title: "Platelet", value: $plt, precision: 0...0, unitText: "×10³/µL", systemImage: "pills", keyboard: .numberPad)
+            MeasurementBar(title: "Platelet", value: plt, domain: pltDomain, segments: pltSegments,
+                           valueFormatter: { "\(Int($0)) ×10³/µL" })
+            LegendRow(items: [(.green.opacity(0.7), "Reference"), (.red.opacity(0.7), "Low/High")])
+            Divider()
+
+            // WBC
+            LabeledNumberField(title: "WBC", value: $wbc, precision: 0...1, unitText: "×10³/µL", systemImage: "face.smiling", keyboard: .decimalPad)
+            MeasurementBar(title: "WBC", value: wbc, domain: wbcDomain, segments: wbcSegments,
+                           valueFormatter: { String(format: "%.1f ×10³/µL", $0) })
+            LegendRow(items: [(.green.opacity(0.7), "Reference"), (.red.opacity(0.7), "Low/High")])
+        }
+    }
+}
 
 struct UnitPicker: View {
     @Binding var unit: LengthUnit
