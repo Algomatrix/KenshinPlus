@@ -27,6 +27,9 @@ struct ManualDataInputView: View {
     @State private var totalProtein: Double = 7.2
     @State private var albumin: Double = 4.4
 
+    @State private var creatine: Double = 0.98
+    @State private var uricAcid: Double = 6.2
+
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
@@ -59,6 +62,14 @@ struct ManualDataInputView: View {
                         ggt: $ggt,
                         totalProtein: $totalProtein,
                         albumin: $albumin
+                    )
+                }
+                
+                PutBarChartInContainer(title: "Creatine and Uric Acid") {
+                    ManualDataRenalUrate(
+                        gender: $gender,
+                        creatinine: $creatine,
+                        uricAcid: $uricAcid
                     )
                 }
             }
@@ -625,6 +636,93 @@ struct ManualDataLiverFunction: View {
         .padding(.vertical)
     }
 }
+
+
+struct ManualDataRenalUrate: View {
+    @Binding var gender: Gender
+
+    // Bind these from the parent so it owns the truth
+    @Binding var creatinine: Double   // mg/dL
+    @Binding var uricAcid: Double     // mg/dL
+
+    // ---- Domains (x-axis) ----
+    private let crDomain: ClosedRange<Double> = 0.3...3.0     // mg/dL
+    private let uaDomain: ClosedRange<Double> = 1.0...12.0    // mg/dL
+
+    // Creatinine (adult, typical): Men ~0.74–1.35; Women ~0.59–1.04 mg/dL
+    private var crSegments: [RangeSeg] {
+        switch gender {
+        case .Male:
+            return [
+                .init(label: "Low",       start: crDomain.lowerBound, end: 0.74, color: .red.opacity(0.7)),
+                .init(label: "Reference", start: 0.74,                end: 1.35, color: .green.opacity(0.7)),
+                .init(label: "High",      start: 1.35,                end: crDomain.upperBound, color: .orange.opacity(0.8))
+            ]
+        case .Female:
+            return [
+                .init(label: "Low",       start: crDomain.lowerBound, end: 0.59, color: .red.opacity(0.7)),
+                .init(label: "Reference", start: 0.59,                end: 1.04, color: .green.opacity(0.7)),
+                .init(label: "High",      start: 1.04,                end: crDomain.upperBound, color: .orange.opacity(0.8))
+            ]
+        }
+    }
+
+    // Uric Acid (adult, common): Men ~3.4–7.0; Women ~2.4–6.0 mg/dL
+    private var uaSegments: [RangeSeg] {
+        switch gender {
+        case .Male:
+            return [
+                .init(label: "Low",       start: uaDomain.lowerBound, end: 3.4, color: .red.opacity(0.7)),
+                .init(label: "Reference", start: 3.4,                 end: 7.0, color: .green.opacity(0.7)),
+                .init(label: "High",      start: 7.0,                 end: 9.0, color: .orange.opacity(0.8)),
+                .init(label: "Very high", start: 9.0,                 end: uaDomain.upperBound, color: .red.opacity(0.8))
+            ]
+        case .Female:
+            return [
+                .init(label: "Low",       start: uaDomain.lowerBound, end: 2.4, color: .red.opacity(0.7)),
+                .init(label: "Reference", start: 2.4,                 end: 6.0, color: .green.opacity(0.7)),
+                .init(label: "High",      start: 6.0,                 end: 8.0, color: .orange.opacity(0.8)),
+                .init(label: "Very high", start: 8.0,                 end: uaDomain.upperBound, color: .red.opacity(0.8))
+            ]
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            // Creatinine
+            LabeledNumberField(title: "Creatinine", value: $creatinine,
+                               precision: 0...2, unitText: "mg/dL",
+                               systemImage: "square.grid.2x2", keyboard: .decimalPad)
+            MeasurementBar(title: "Creatinine",
+                           value: creatinine,
+                           domain: crDomain,
+                           segments: crSegments,
+                           valueFormatter: { String(format: "%.2f mg/dL", $0) })
+            LegendRow(items: [
+                (.green.opacity(0.7), "Reference"),
+                (.orange.opacity(0.8), "High"),
+                (.red.opacity(0.7), "Low/Very high")
+            ])
+            Divider()
+
+            // Uric Acid
+            LabeledNumberField(title: "Uric Acid", value: $uricAcid,
+                               precision: 0...1, unitText: "mg/dL",
+                               systemImage: "drop.triangle", keyboard: .decimalPad)
+            MeasurementBar(title: "Uric Acid",
+                           value: uricAcid,
+                           domain: uaDomain,
+                           segments: uaSegments,
+                           valueFormatter: { String(format: "%.1f mg/dL", $0) })
+            LegendRow(items: [
+                (.green.opacity(0.7), "Reference"),
+                (.orange.opacity(0.8), "High"),
+                (.red.opacity(0.8), "Very high / Low")
+            ])
+        }
+    }
+}
+
 
 struct UnitPicker: View {
     @Binding var unit: LengthUnit
