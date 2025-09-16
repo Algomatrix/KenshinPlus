@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct ManualDataInputView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+
     @State private var date: Date = .init()
     @State private var unit: LengthUnit = .cm
     @State private var heightCm: Double = 170.0  // single source of truth
@@ -17,6 +20,15 @@ struct ManualDataInputView: View {
     @State private var weightKg: Double = 65.0
     @State private var weightUnit: WeightUnit = .Kg
 
+    @State private var systolic: Double = 120
+    @State private var diastolic: Double = 80
+    @State private var rbcMillionPeruL: Double = 10
+    @State private var hgbPerdL: Double = 10
+    @State private var hctPercent: Double = 10
+    @State private var pltThousandPeruL: Double = 10
+    @State private var wbcThousandPeruL: Double = 10
+
+    
     // Fat % and Abdominal girth
     @State private var fatPercent: Double = 20.0
     @State private var abdominalGirthCm: Double = 85.0
@@ -55,7 +67,15 @@ struct ManualDataInputView: View {
                 }
                 
                 PutBarChartInContainer(title: "Blood Pressure") {
-                    ManualDataBloodPressure()
+                    ManualDataBloodPressure(
+                        systolic: $systolic,
+                        diastolic: $diastolic,
+                        rbcMillionPeruL: $rbcMillionPeruL,
+                        hgbPerdL: $hgbPerdL,
+                        hctPercent: $hctPercent,
+                        pltThousandPeruL: $pltThousandPeruL,
+                        wbcThousandPeruL: $wbcThousandPeruL
+                    )
                 }
 
                 PutBarChartInContainer(title: "Blood Test") {
@@ -91,9 +111,69 @@ struct ManualDataInputView: View {
                 PutBarChartInContainer(title: "Lipid Data") {
                     ManualDataLipids(gender: $gender, totalCholesterol: $totalCholesterol, hdl: $hdl, ldl: $ldl, triglycerides: $triglycerides)
                 }
+
+                Button {
+                    saveRecord()
+                    dismiss()
+                } label: {
+                    Label("Save Checkup Data", systemImage: "tray.and.arrow.down.fill")
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.top, 12)
+
             }
             .padding()
         }
+        .navigationTitle("Add Checkup Data")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark.circle")
+                        .foregroundStyle(.red)
+                }
+            }
+        }
+    }
+
+    private func saveRecord() {
+        let record = CheckupRecord(
+            id: UUID(),
+            createdAt: date,
+            date: date,
+            gender: (gender == .Male) ? .male : .female,
+            heightCm: heightCm,
+            weightKg: weightKg,
+            fatPercent: fatPercent,
+            waistDm: abdominalGirthCm,
+            systolic: systolic,
+            diastolic: diastolic,
+            rbcMillionPeruL: rbcMillionPeruL,
+            hgbPerdL: hgbPerdL,
+            hctPercent: hctPercent,
+            pltThousandPeruL: pltThousandPeruL,
+            wbcThousandPeruL: wbcThousandPeruL,
+            ast: ast,
+            alt: alt,
+            ggt: ggt,
+            totalProtein: totalProtein,
+            albumin: albumin,
+            creatine: creatine,
+            uricAcid: uricAcid,
+            fastingGlucoseMgdl: fastingBloodGlucose,
+            hba1cNgspPercent: hbA1c,
+            totalChol: totalCholesterol,
+            hdl: hdl,
+            ldl: ldl,
+            triglycerides: triglycerides,
+            lengthUnit: (unit == .cm ? .cm : .ft),
+            weightUnit: (weightUnit == .Kg ? .kg : .pounds)
+        )
+        modelContext.insert(record)
+        // SwiftData autosaves on runloop; if you want explicit:
+        try? modelContext.save()
     }
 }
 
@@ -327,8 +407,14 @@ struct ManualDataBasicInfoArea: View {
 }
 
 struct ManualDataBloodPressure: View {
-    @State private var systolic: Double = 120
-    @State private var diastolic: Double = 80
+    @Binding var systolic: Double
+    @Binding var diastolic: Double
+    @Binding var rbcMillionPeruL: Double
+    @Binding var hgbPerdL: Double
+    @Binding var hctPercent: Double
+    @Binding var pltThousandPeruL: Double
+    @Binding var wbcThousandPeruL: Double
+
 
     // Systolic domain & segments
     private let sysDomain: ClosedRange<Double> = 80...200
@@ -711,7 +797,7 @@ struct ManualDataRenalUrate: View {
             // Creatinine
             LabeledNumberField(title: "Creatinine", value: $creatinine,
                                precision: 0...2, unitText: "mg/dL",
-                               systemImage: "kidneys", keyboard: .decimalPad)
+                               systemImage: "square.grid.2x2", keyboard: .decimalPad)
             MeasurementBar(title: "Creatinine",
                            value: creatinine,
                            domain: crDomain,

@@ -9,6 +9,11 @@ import SwiftUI
 import SwiftData
 
 struct DashboardView: View {
+    @Query(sort: \CheckupRecord.date, order: .reverse)
+    private var records: [CheckupRecord]
+    
+    @State private var showManualInputScreen = false
+
     let mockData = MockDataForPreview()
     var body: some View {
         let mockBloodData = mockData.mockBloodTestSeries()
@@ -128,19 +133,81 @@ struct DashboardView: View {
                         )
                     }
                 }
+
+                PutBarChartInContainer(title: "Checkup History") {
+                    testHistoryListView
+                }
             }
             .navigationTitle("Health Dashboard")
             .padding()
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showManualInputScreen = true
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                    }
+                }
+            }
+            .fullScreenCover(isPresented: $showManualInputScreen, onDismiss: {
+                showManualInputScreen = false
+            }) {
+                NavigationStack {
+                    ManualDataInputView()
+                }
+            }
         }
-//        .background(RoundedRectangle(cornerRadius: 12, style: .circular).fill(.tertiary.opacity(0.5)))
+//                .background(RoundedRectangle(cornerRadius: 12, style: .circular).fill(.tertiary.opacity(0.5)))
+    }
+    
+    var testHistoryListView: some View {
+        List {
+            if records.isEmpty {
+                Text("No records yet. Tap \(Image(systemName: "plus.circle.fill")) to add one.")
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(records) { rec in
+                    NavigationLink {
+                        CheckupDetailView(record: rec)
+                    } label: {
+                        VStack(alignment: .leading) {
+                            Text(rec.date.formatted(date: .abbreviated, time: .omitted))
+                                .font(.headline)
+                            Text("BMI \(String(format: "%.1f", rec.bmi)) • \(rec.gender == .male ? "Male" : "Female")")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+        }
+        .frame(height: !records.isEmpty ? 300 : 120)
+    }
+}
+
+struct CheckupDetailView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Bindable var record: CheckupRecord   // SwiftData magic
+
+    var body: some View {
+        Form {
+            DatePicker("Date", selection: $record.date, displayedComponents: .date)
+            Picker("Gender", selection: $record.gender) {
+                Text("Male").tag(SDGender.male)
+                Text("Female").tag(SDGender.female)
+            }
+            LabeledNumberField(title: "Height", value: $record.heightCm, precision: 0...1, unitText: "cm")
+            LabeledNumberField(title: "Weight", value: $record.weightKg, precision: 0...1, unitText: "kg")
+            Text("BMI: \(String(format: "%.1f", record.bmi))")
+        }
+        .navigationTitle("Checkup")
+        .toolbar {
+            Button("Save") { try? modelContext.save() }
+        }
     }
 }
 
 #Preview {
     DashboardView()
+        .modelContainer(for: CheckupRecord.self, inMemory: true)
 }
-
-//#Preview {
-//    DashboardView()
-//        .modelContainer(for: Item.self, inMemory: true)
-//}
