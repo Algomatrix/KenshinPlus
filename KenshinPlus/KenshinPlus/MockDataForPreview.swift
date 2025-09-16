@@ -54,6 +54,111 @@ struct MetabolismTestSample: Identifiable {
     let fastingGlucose: Double  // mg/dL
 }
 
+enum EyeScreeningGrade: String, Codable {
+    case A, B, C, D
+}
+
+enum ColorVisionResult: String, Codable {
+    case normal = "Normal"
+    case deficiencySuspected = "Deficiency suspected"
+    case notTested = "Not tested"
+}
+
+struct RefractionValue: Codable {
+    var sphere: Double     // Spherical power, diopters (e.g. -3.25)
+    var cylinder: Double   // Cylindrical power, diopters (e.g. -1.00)
+    var axis: Int          // 0–180 degrees
+}
+
+struct EyeExamSample: Identifiable, Codable {
+    var id = UUID()
+    let date: Date
+
+    // Decimal visual acuity (Landolt C style). Japan uses decimals like 1.0, 0.7, etc.
+    // Uncorrected (裸眼) and best-corrected (矯正)
+    let uncorrectedRight: Double
+    let uncorrectedLeft: Double
+    let correctedRight: Double?
+    let correctedLeft: Double?
+
+    // Optional refraction (if measured)
+    let refractionRight: RefractionValue?
+    let refractionLeft: RefractionValue?
+
+    // Intraocular pressure (mmHg), non-contact tonometry typical
+    let iopRight: Double?
+    let iopLeft: Double?
+
+    // Near vision (decimal; optional)
+    let nearBothEyes: Double?
+
+    // Interpupillary distance (mm); optional
+    let interpupillaryDistance: Double?
+
+    // Color vision (Ishihara quick screen style)
+    let colorPlatesTotal: Int?
+    let colorPlatesCorrect: Int?
+    let colorVisionResult: ColorVisionResult
+
+    // Auto-derived screening grades (JP A–D bands)
+    // A: ≥1.0, B: 0.7–0.9, C: 0.3–0.6, D: <0.3
+    let gradeRight: EyeScreeningGrade
+    let gradeLeft: EyeScreeningGrade
+
+    // Free text notes from screener
+    let notes: String?
+}
+
+fileprivate func jpScreeningGrade(for decimalAcuity: Double) -> EyeScreeningGrade {
+    switch decimalAcuity {
+    case let x where x >= 1.0: return .A
+    case 0.7..<1.0: return .B
+    case 0.3..<0.7: return .C
+    default: return .D
+    }
+}
+
+fileprivate func randomJPDecimalAcuity(mean: Double = 1.0, sd: Double = 0.2, clamp: ClosedRange<Double> = 0.05...1.5) -> Double {
+    // Simple Box–Muller for a bell-ish distribution
+    let u1 = Double.random(in: 0.0001...1.0)
+    let u2 = Double.random(in: 0.0001...1.0)
+    let z = sqrt(-2.0 * log(u1)) * cos(2.0 * .pi * u2)
+    let val = (mean + sd * z)
+    return min(max(val, clamp.lowerBound), clamp.upperBound).rounded(to: 1)
+}
+
+fileprivate func randomRefraction() -> RefractionValue {
+    // Myopia-biased distribution common in JP
+    let sphere = (Double.random(in: -6.0 ... -0.5) + (Bool.random() ? 0.0 : Double.random(in: 0.0 ... 2.0))).rounded(to: 2)
+    let cylinder = (-Double.random(in: 0.0 ... 2.5)).rounded(to: 2) // negative cyl format
+    let axis = Int.random(in: 0...180)
+    return RefractionValue(sphere: sphere, cylinder: cylinder, axis: axis)
+}
+
+
+fileprivate func randomColorVision() -> (total: Int, correct: Int, result: ColorVisionResult) {
+    let total = 14 // common short Ishihara set
+    // ~8% males w/ red-green deficiency → bias a little
+    let hasDef = Bool.random(probability: 0.1)
+    let correct = hasDef ? Int.random(in: 6...11) : Int.random(in: 12...14)
+    let result: ColorVisionResult = hasDef ? .deficiencySuspected : .normal
+    return (total, correct, result)
+}
+
+
+fileprivate func randomIOP() -> Double {
+    Double.random(in: 11.0...20.0).rounded(to: 1) // normal-ish 10–21
+}
+
+extension Bool {
+    /// Probability helper: returns true with given probability (0.0–1.0)
+    static func random(probability p: Double) -> Bool {
+        Double.random(in: 0...1) < p
+    }
+}
+
+// MARK: - MockDataForPreview additions
+
 @Observable class MockDataForPreview {
     func mockSystolicBloodPressure() -> [BloodPressureSample] {
         var mockSample: [BloodPressureSample] = []
@@ -164,6 +269,67 @@ struct MetabolismTestSample: Identifiable {
         // ascending for better chart display
         return samples.sorted { $0.date < $1.date }
     }
+    
+    func mockEyeExam(on date: Date = Date(), includeRefraction: Bool = true, includeIOP: Bool = true, includeNear: Bool = false, includeIPD: Bool = false, includeColor: Bool = false) -> EyeExamSample {
+        
+        // Uncorrected tends to be worse than corrected; bias slightly lower
+        let unRight = randomJPDecimalAcuity(mean: 0.7, sd: 0.25)
+        let unLeft = randomJPDecimalAcuity(mean: 0.7, sd: 0.25)
+        
+        
+        // If corrected measured, aim ≥ 1.0 but allow imperfect correction
+        let corrRight: Double? = includeRefraction ? randomJPDecimalAcuity(mean: max(1.1, unRight + 0.3), sd: 0.15) : nil
+        let corrLeft: Double?  = includeRefraction ? randomJPDecimalAcuity(mean: max(1.1, unLeft  + 0.3), sd: 0.15) : nil
+        
+        let refR: RefractionValue? = includeRefraction ? randomRefraction() : nil
+        let refL: RefractionValue? = includeRefraction ? randomRefraction() : nil
+        
+        let iopR: Double? = includeIOP ? randomIOP() : nil
+        let iopL: Double? = includeIOP ? randomIOP() : nil
+        
+        let near: Double? = includeNear ? randomJPDecimalAcuity(mean: 1.0, sd: 0.1) : nil
+        let ipd: Double?  = includeIPD ? Double.random(in: 58...68).rounded(to: 1) : nil
+        
+        let color: (Int, Int, ColorVisionResult)? = includeColor ? randomColorVision() : nil
+        
+        let gradeR = jpScreeningGrade(for: corrRight ?? unRight)
+        let gradeL = jpScreeningGrade(for: corrLeft ?? unLeft)
+        
+        return EyeExamSample(
+            date: date,
+            uncorrectedRight: unRight,
+            uncorrectedLeft: unLeft,
+            correctedRight: corrRight,
+            correctedLeft: corrLeft,
+            refractionRight: refR,
+            refractionLeft: refL,
+            iopRight: iopR,
+            iopLeft: iopL,
+            nearBothEyes: near,
+            interpupillaryDistance: ipd,
+            colorPlatesTotal: color?.0,
+            colorPlatesCorrect: color?.1,
+            colorVisionResult: color?.2 ?? .notTested,
+            gradeRight: gradeR,
+            gradeLeft: gradeL,
+            notes: nil
+        )
+    }
+    
+    func mockEyeExamSeries(count: Int = 6) -> [EyeExamSample] {
+        let cal = Calendar.current
+        let samples = (0..<count).map { i -> EyeExamSample in
+            let date = cal.date(byAdding: .year, value: -i, to: Date())!
+            return mockEyeExam(on: date,
+                               includeRefraction: true,
+                               includeIOP: Bool.random(probability: 0.8),
+                               includeNear: Bool.random(probability: 0.4),
+                               includeIPD: Bool.random(probability: 0.3),
+                               includeColor: Bool.random(probability: 0.9))
+        }
+        return samples.sorted { $0.date < $1.date }
+    }
+
 }
 
 extension Double {

@@ -16,6 +16,7 @@ struct DashboardView: View {
         let mockKidneyData = mockData.mockKidneyTestSeries()
         let mockMetabolismData = mockData.mockMetabolismTestSeries()
         let mockCholesterolData = mockData.mockCholesterolTestSeries()
+        let mockEyeData = mockData.mockEyeExamSeries()
 
         NavigationStack {
             ScrollView {
@@ -106,10 +107,9 @@ struct DashboardView: View {
                 }
                 
                 // Eyesight and Hearing
-                // TODO: Write code for eye test view
                 HStack(spacing: 20) {
                     NavigationLink(
-                        destination: EmptyView()
+                        destination: EyeTestView(sample: mockEyeData)
                     ) {
                         DataAtGlanceContainerSmall(
                             title: "Eyesight",
@@ -120,7 +120,7 @@ struct DashboardView: View {
                     }
                     
                     NavigationLink(
-                        destination: HearingTestView(results: [HearingResult(ear: .allCases.randomElement()!, band: .allCases.randomElement()!, state: .allCases.randomElement()!)])
+                        destination: EmptyView()
                     ) {
                         DataAtGlanceContainerSmall(
                             title: "Hearing",
