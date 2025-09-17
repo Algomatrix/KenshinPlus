@@ -39,7 +39,7 @@ struct ManualDataInputView: View {
     @State private var totalProtein: Double = 7.2
     @State private var albumin: Double = 4.4
 
-    @State private var creatine: Double = 0.98
+    @State private var creatinine: Double = 0.98
     @State private var uricAcid: Double = 6.2
 
     @State private var fastingBloodGlucose: Double = 60.0
@@ -93,10 +93,10 @@ struct ManualDataInputView: View {
                     )
                 }
                 
-                PutBarChartInContainer(title: "Creatine and Uric Acid") {
+                PutBarChartInContainer(title: "Creatinine and Uric Acid") {
                     ManualDataRenalUrate(
                         gender: $gender,
-                        creatinine: $creatine,
+                        creatinine: $creatinine,
                         uricAcid: $uricAcid
                     )
                 }
@@ -147,7 +147,7 @@ struct ManualDataInputView: View {
             heightCm: heightCm,
             weightKg: weightKg,
             fatPercent: fatPercent,
-            waistDm: abdominalGirthCm,
+            waistCm: abdominalGirthCm,
             systolic: systolic,
             diastolic: diastolic,
             rbcMillionPeruL: rbcMillionPeruL,
@@ -160,7 +160,7 @@ struct ManualDataInputView: View {
             ggt: ggt,
             totalProtein: totalProtein,
             albumin: albumin,
-            creatine: creatine,
+            creatinine: creatinine,
             uricAcid: uricAcid,
             fastingGlucoseMgdl: fastingBloodGlucose,
             hba1cNgspPercent: hbA1c,
