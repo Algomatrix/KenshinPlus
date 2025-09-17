@@ -27,7 +27,7 @@ final class CheckupRecord {
     var heightCm: Double
     var weightKg: Double
     var fatPercent: Double?
-    var waistDm: Double?
+    var waistCm: Double?
     
     // Blood Pressure
     var systolic: Double?
@@ -48,7 +48,7 @@ final class CheckupRecord {
     var albumin: Double?
     
     // Renal / Urate
-    var creatine: Double?
+    var creatinine: Double?
     var uricAcid: Double?
     
     // Metabolism
@@ -73,14 +73,15 @@ final class CheckupRecord {
     }
     
     init(
-        id: UUID,
-        createdAt: Date,
+        id: UUID = UUID(),
+        createdAt: Date = .init(),
         date: Date,
         gender: SDGender,
         heightCm: Double,
         weightKg: Double,
+        // keep all optionals defaulted to nil:
         fatPercent: Double? = nil,
-        waistDm: Double? = nil,
+        waistCm: Double? = nil,   // or rename to waistCm if that was a typo
         systolic: Double? = nil,
         diastolic: Double? = nil,
         rbcMillionPeruL: Double? = nil,
@@ -93,7 +94,7 @@ final class CheckupRecord {
         ggt: Double? = nil,
         totalProtein: Double? = nil,
         albumin: Double? = nil,
-        creatine: Double? = nil,
+        creatinine: Double? = nil,   // consider renaming to creatinine
         uricAcid: Double? = nil,
         fastingGlucoseMgdl: Double? = nil,
         hba1cNgspPercent: Double? = nil,
@@ -101,8 +102,8 @@ final class CheckupRecord {
         hdl: Double? = nil,
         ldl: Double? = nil,
         triglycerides: Double? = nil,
-        lengthUnit: SDLengthUnit,
-        weightUnit: SDWeightUnit
+        lengthUnit: SDLengthUnit = .cm,
+        weightUnit: SDWeightUnit = .kg
     ) {
         self.id = id
         self.createdAt = createdAt
@@ -111,7 +112,7 @@ final class CheckupRecord {
         self.heightCm = heightCm
         self.weightKg = weightKg
         self.fatPercent = fatPercent
-        self.waistDm = waistDm
+        self.waistCm = waistCm
         self.systolic = systolic
         self.diastolic = diastolic
         self.rbcMillionPeruL = rbcMillionPeruL
@@ -124,7 +125,7 @@ final class CheckupRecord {
         self.ggt = ggt
         self.totalProtein = totalProtein
         self.albumin = albumin
-        self.creatine = creatine
+        self.creatinine = creatinine
         self.uricAcid = uricAcid
         self.fastingGlucoseMgdl = fastingGlucoseMgdl
         self.hba1cNgspPercent = hba1cNgspPercent
