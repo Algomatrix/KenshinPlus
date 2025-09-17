@@ -7,6 +7,13 @@
 
 import Foundation
 
+struct BloodPressureSample: Identifiable {
+    let id = UUID()
+    let date: Date
+    let systolic: Double
+    let diastolic: Double
+}
+
 struct BloodTestSample: Identifiable {
     var id = UUID()
     var rbc: Double        // million/µL

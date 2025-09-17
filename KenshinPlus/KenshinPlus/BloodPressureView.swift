@@ -8,13 +8,6 @@
 import SwiftUI
 import Charts
 
-struct BloodPressureSample: Identifiable {
-    let id = UUID()
-    let date: Date
-    let systolic: Double
-    let diastolic: Double
-}
-
 struct BloodPressureView: View {
     var title: String
     var subtitle: String
@@ -22,8 +15,6 @@ struct BloodPressureView: View {
     var color: Color
     var frameHeight: Double
     let records: [CheckupRecord]
-
-    private var samples: [BloodPressureSample] { records.bpSamples() }
 
 //    let mockBloodPressureSamples: [BloodPressureSample] // MockData for future use
 
@@ -62,11 +53,13 @@ struct BloodPressureView: View {
     }
     
     var systolicChart: some View {
-        Chart {
-            ForEach(samples) { bloodPressure in
+        let systolic = records.metricSamples(\.systolic)
+
+        return Chart {
+            ForEach(systolic) { bloodPressure in
                 LineMark (
                     x: .value("Date", bloodPressure.date, unit: .day),
-                    y: .value("Systolic BP", bloodPressure.systolic)
+                    y: .value("Systolic BP", bloodPressure.value)
                 )
                 .symbol(.circle)
                 .interpolationMethod(.catmullRom)
@@ -87,19 +80,21 @@ struct BloodPressureView: View {
         }
         .padding() // So the chart doesn't touch the edges of the background
         .overlay {
-            if samples.isEmpty {
+            if systolic.isEmpty {
                 NoChartDataView(systemImageName: "drop.degreesign.slash", title: "No Data", description: "There is no blood pressure data from App.")
             }
         }
     }
     
     var diastolicChart: some View {
-        Chart {
-            ForEach(samples) { bloodPressure in
+        let diastolic = records.metricSamples(\.diastolic)
+
+        return Chart {
+            ForEach(diastolic) { bloodPressure in
                 // Create two bars for each blood pressure sample
                 LineMark (
                     x: .value("Date", bloodPressure.date, unit: .day),
-                    y: .value("Systolic BP", bloodPressure.diastolic)
+                    y: .value("Systolic BP", bloodPressure.value)
                 )
                 .symbol(.circle)
                 .interpolationMethod(.catmullRom)
@@ -120,7 +115,7 @@ struct BloodPressureView: View {
         }
         .padding()
         .overlay {
-            if samples.isEmpty {
+            if diastolic.isEmpty {
                 NoChartDataView(systemImageName: "drop.degreesign.slash", title: "No Data", description: "There is no blood pressure data from App.")
             }
         }

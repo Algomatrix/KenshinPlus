@@ -26,13 +26,13 @@ struct DashboardView: View {
         NavigationStack {
             ScrollView {
                 HStack(spacing: 20) {
-                    DataAtGlanceContainerSmall(title: "Body Weight", symbol: "figure", subtitle: "80 Kg", color: .indigo)
-                    DataAtGlanceContainerSmall(title: "Body Fat", symbol: "figure.walk", subtitle: "19", color: .indigo)
+                    DataAtGlanceContainerSmall(title: "Body Weight", symbol: "figure", subtitle: latestWeightText, color: .indigo)
+                    DataAtGlanceContainerSmall(title: "Body Fat", symbol: "figure.walk", subtitle: latestFatPercentText, color: .indigo)
                 }
 
                 HStack(spacing: 20) {
-                    DataAtGlanceContainerSmall(title: "BMI", symbol: "figure", subtitle: "19", color: .mint)
-                    DataAtGlanceContainerSmall(title: "Height", symbol: "ruler", subtitle: "19", color: .mint)
+                    DataAtGlanceContainerSmall(title: "BMI", symbol: "figure", subtitle: latestBmiText, color: .mint)
+                    DataAtGlanceContainerSmall(title: "Height", symbol: "ruler", subtitle: latestHeightText, color: .mint)
                 }
 
                 HStack(spacing: 20) {
@@ -182,6 +182,32 @@ struct DashboardView: View {
             }
         }
         .frame(height: !records.isEmpty ? 300 : 120)
+    }
+    
+    // Latest (most recent) record
+    private var latest: CheckupRecord? { records.first } // Because records is reverse sorted
+    
+    private var latestWeightText: String {
+        guard let r = latest else { return "-" }
+        return String(format: "%.1f kg", r.weightKg)
+    }
+    
+    // Latest Fat percent
+    private var latestFatPercentText: String {
+        guard let r = latest, let fat = r.fatPercent else { return "-" }
+        return String(format: "%.1f %%", fat)
+    }
+    
+    // Latest Height
+    private var latestHeightText: String {
+        guard let r = latest else { return "-" }
+        return String(format: "%.1f cm", r.heightCm)
+    }
+    
+    // Latest BMI
+    private var latestBmiText: String {
+        guard let r = latest else { return "-" }
+        return String(format: "%.1f", r.bmi)
     }
 }
 
