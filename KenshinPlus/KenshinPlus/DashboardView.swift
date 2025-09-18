@@ -17,7 +17,6 @@ struct DashboardView: View {
     let mockData = MockDataForPreview()
     var body: some View {
 //        let mockBloodData = mockData.mockBloodTestSeries()
-        let mockMetabolismData = mockData.mockMetabolismTestSeries()
         let mockCholesterolData = mockData.mockCholesterolTestSeries()
         let mockEyeData = mockData.mockEyeExamSeries()
 
@@ -85,7 +84,7 @@ struct DashboardView: View {
                 // Metabolism and Cholesterol
                 HStack(spacing: 20) {
                     NavigationLink(
-                        destination: MetabolicTestView(samples: mockMetabolismData)
+                        destination: MetabolicTestView(records: records)
                     ) {
                         DataAtGlanceContainerSmall(
                             title: "Metabolism",
