@@ -15,15 +15,14 @@ struct MetricSample: Identifiable {
 }
 
 extension Collection where Element == CheckupRecord {
-    func metricSamples(_ keyPath: KeyPath<CheckupRecord, Double?>, limit: Int? = nil) -> [MetricSample] {
-        var samples = self.compactMap { rec -> MetricSample? in
-            guard let value = rec[keyPath: keyPath] else { return nil }
-            return MetricSample(date: rec.date, value: value)
-        }.sorted { $0.date < $1.date }
-        
-        if let limit, samples.count > limit {
-            samples = Array(samples.suffix(limit))
+    func metricSamples(_ keyPath: KeyPath<CheckupRecord, Double?>,
+                       limit: Int? = nil) -> [MetricSample] {
+        var out = self.compactMap { rec -> MetricSample? in
+            guard let v = rec[keyPath: keyPath] else { return nil }
+            return MetricSample(date: rec.date, value: v)
         }
-        return samples
+            .sorted { $0.date < $1.date }
+        if let limit, out.count > limit { out = Array(out.suffix(limit)) }
+        return out
     }
 }

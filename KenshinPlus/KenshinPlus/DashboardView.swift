@@ -37,7 +37,7 @@ struct DashboardView: View {
 
                 HStack(spacing: 20) {
                     NavigationLink(
-                        destination: BloodPressureView(title: "Blood Pressure", subtitle: "Systolic and Diastolic", symbol: "blood.pressure.cuff.badge.gauge.with.needle.fill", color: .red, frameHeight: 300, records: records)
+                        destination: BloodPressureView(title: "Blood Pressure", subtitle: "Systolic and Diastolic", symbol: "blood.pressure.cuff.badge.gauge.with.needle.fill", color: .red, records: records)
                     ) {
                         DataAtGlanceContainerSmall(
                             title: "Blood Pressure",

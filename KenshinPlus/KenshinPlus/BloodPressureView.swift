@@ -13,10 +13,7 @@ struct BloodPressureView: View {
     var subtitle: String
     var symbol: String
     var color: Color
-    var frameHeight: Double
     let records: [CheckupRecord]
-
-//    let mockBloodPressureSamples: [BloodPressureSample] // MockData for future use
 
 // MARK: Main body
     var body: some View {
@@ -24,22 +21,13 @@ struct BloodPressureView: View {
             mainLabelView
                 .frame(width: 150)
 
-            ZStack {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color(.secondarySystemBackground))
-                
-                systolicChart
-            }
-            .frame(height: frameHeight)
-            
-            
-            ZStack {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color(.secondarySystemBackground))
+                PutBarChartInContainer(title: "Systolic") {
+                    systolicChart
+                }
 
-                diastolicChart
-            }
-            .frame(height: frameHeight) // Adjust height as needed
+                PutBarChartInContainer(title: "Diastolic") {
+                    diastolicChart
+                }
         }
         .padding()
     }
@@ -138,15 +126,6 @@ struct BloodPressureView: View {
         subtitle: "Systolic and Diastolic",
         symbol: "blood.pressure.cuff.badge.gauge.with.needle.fill",
         color: .red,
-        frameHeight: 150,
         records: recs
     )
 }
-
-// MARK: For mockdata
-//#Preview {
-//    let mockData = MockDataForPreview()
-//    let bloodPressureSamples = mockData.mockSystolicBloodPressure()
-//    BloodPressureView(title: "Blood Pressure", subtitle: "systolic and daistolic", symbol: "blood.pressure.cuff.badge.gauge.with.needle.fill", color: .red, frameHeight: 150, mockBloodPressureSamples: bloodPressureSamples)
-//        .frame(height: 50)
-//}
