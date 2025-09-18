@@ -17,7 +17,6 @@ struct DashboardView: View {
     let mockData = MockDataForPreview()
     var body: some View {
 //        let mockBloodData = mockData.mockBloodTestSeries()
-        let mockCholesterolData = mockData.mockCholesterolTestSeries()
         let mockEyeData = mockData.mockEyeExamSeries()
 
         NavigationStack {
@@ -95,7 +94,7 @@ struct DashboardView: View {
                     }
                     
                     NavigationLink(
-                        destination: CholesterolTestView(sample: mockCholesterolData)
+                        destination: CholesterolTestView(records: records)
                     ) {
                         DataAtGlanceContainerSmall(
                             title: "Cholesterol",
