@@ -25,4 +25,9 @@ extension Collection where Element == CheckupRecord {
         if let limit, out.count > limit { out = Array(out.suffix(limit)) }
         return out
     }
+
+    // Convenience: latest value for a metric
+    func latestValue(_ keyPath: KeyPath<CheckupRecord, Double?>) -> Double? {
+        self.metricSamples(keyPath).last?.value
+    }
 }
