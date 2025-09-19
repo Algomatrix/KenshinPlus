@@ -9,11 +9,19 @@ import SwiftUI
 import Charts
 
 struct KidneyTestView: View {
-    let data: [(date: Date, sample: KidneyTestSample)]
+    let records: [CheckupRecord]
 
     // Helpers for shaded band extent on X
-    private var startDate: Date? { data.map { $0.date }.min() }
-    private var endDate: Date? { data.map { $0.date }.max() }
+    private var startDate: Date? { records.map { $0.date }.min() }
+    private var endDate: Date? { records.map { $0.date }.max() }
+    
+    private var uricAcid: [MetricSample] {
+        records.metricSamples(\.uricAcid)
+    }
+
+    private var creatinine: [MetricSample] {
+        records.metricSamples(\.creatinine)
+    }
 
     var body: some View {
         ScrollView {
@@ -31,23 +39,33 @@ struct KidneyTestView: View {
                             )
                             .foregroundStyle(.blue.opacity(0.12))
                         }
-
+                        
                         // Line for Uric Acid
-                        ForEach(data, id: \.date) { entry in
+                        ForEach(uricAcid) { entry in
                             LineMark(
                                 x: .value("Date", entry.date),
-                                y: .value("Uric Acid", entry.sample.uricAcid)
+                                y: .value("Uric Acid", entry.value)
                             )
                             .foregroundStyle(.blue)
-                            .symbol(Circle())
+                            .symbol(.circle)
                             .interpolationMethod(.catmullRom)
                         }
                     }
                     .chartYAxis {
-                        AxisMarks(position: .trailing, values: .automatic) { _ in
+                        AxisMarks(position: .trailing, values: .automatic) { value in
                             AxisGridLine()
                             AxisValueLabel()
                                 .offset(x: 8)
+                        }
+                    }
+                    .chartXAxis {
+                        AxisMarks {
+                            AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
+                        }
+                    }
+                    .overlay {
+                        if uricAcid.isEmpty {
+                            NoChartDataView(systemImageName: "vial.viewfinder", title: "No Data", description: "There is no Albumin data from App.")
                         }
                     }
                 }
@@ -67,21 +85,31 @@ struct KidneyTestView: View {
                         }
 
                         // Line for Creatinine
-                        ForEach(data, id: \.date) { entry in
+                        ForEach(creatinine) { entry in
                             LineMark(
                                 x: .value("Date", entry.date),
-                                y: .value("Creatinine", entry.sample.creatinine)
+                                y: .value("Creatinine", entry.value)
                             )
                             .foregroundStyle(.green)
-                            .symbol(Circle())
+                            .symbol(.circle)
                             .interpolationMethod(.catmullRom)
                         }
                     }
                     .chartYAxis {
-                        AxisMarks(position: .trailing, values: .automatic) { _ in
+                        AxisMarks(position: .trailing, values: .automatic) { value in
                             AxisGridLine()
                             AxisValueLabel()
                                 .offset(x: 8)
+                        }
+                    }
+                    .chartXAxis {
+                        AxisMarks {
+                            AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
+                        }
+                    }
+                    .overlay {
+                        if creatinine.isEmpty {
+                            NoChartDataView(systemImageName: "vial.viewfinder", title: "No Data", description: "There is no Creatinine data from App.")
                         }
                     }
                 }
@@ -92,6 +120,15 @@ struct KidneyTestView: View {
 }
 
 #Preview {
-    let mock = MockDataForPreview()
-    KidneyTestView(data: mock.mockKidneyTestSeries())
+    // Build a few preview records (no SwiftData container needed here)
+    let dates: [Date] = (0..<7).reversed().compactMap {
+        Calendar.current.date(byAdding: .day, value: -$0, to: .now)
+    }
+    let recs: [CheckupRecord] = dates.map { d in
+        let r = CheckupRecord(date: d, gender: .male, heightCm: 170, weightKg: 70)
+        r.uricAcid = Double.random(in: 3.6...7.0)       // reference range mg/dL
+        r.creatinine = Double.random(in: 0.6...1.1)     // reference range mg/dL
+        return r
+    }
+    return KidneyTestView(records: recs)
 }

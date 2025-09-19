@@ -8,12 +8,11 @@
 import Foundation
 
 struct BloodPressureSample: Identifiable {
-    var id = UUID()
+    let id = UUID()
     let date: Date
     let systolic: Double
     let diastolic: Double
 }
-
 
 struct BloodTestSample: Identifiable {
     var id = UUID()
