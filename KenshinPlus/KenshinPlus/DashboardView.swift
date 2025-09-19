@@ -17,7 +17,6 @@ struct DashboardView: View {
     let mockData = MockDataForPreview()
     var body: some View {
 //        let mockBloodData = mockData.mockBloodTestSeries()
-        let mockEyeData = mockData.mockEyeExamSeries()
 
         NavigationStack {
             ScrollView {
@@ -108,7 +107,7 @@ struct DashboardView: View {
                 // Eyesight and Hearing
                 HStack(spacing: 20) {
                     NavigationLink(
-                        destination: EyeTestView(sample: mockEyeData)
+                        destination: EyeTestView(records: records)
                     ) {
                         DataAtGlanceContainerSmall(
                             title: "Eyesight",

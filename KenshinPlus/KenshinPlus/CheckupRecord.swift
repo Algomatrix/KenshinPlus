@@ -14,6 +14,7 @@ enum SDGender: String, Codable, CaseIterable {
 }
 enum SDLengthUnit: String, Codable, CaseIterable { case cm, ft }
 enum SDWeightUnit: String, Codable, CaseIterable { case kg, pounds }
+enum EyeSide: String, CaseIterable { case right = "Right", left = "Left" }
 
 @Model
 final class CheckupRecord {
@@ -71,7 +72,30 @@ final class CheckupRecord {
         let m = heightCm / 100.0
         return weightKg / (m * m)
     }
-    
+
+    // Visual acuity (Japanese decimal, e.g. 1.2). Store both and prefer corrected when present.
+    var uncorrectedAcuityRight: Double?
+    var uncorrectedAcuityLeft:  Double?
+    var correctedAcuityRight:   Double?
+    var correctedAcuityLeft:    Double?
+
+    // Near vision (both eyes together), same decimal scale
+    var nearAcuityBoth: Double?
+
+    // Intraocular pressure (mmHg)
+    var iopRight: Double?
+    var iopLeft:  Double?
+
+    // Color vision (Ishihara plates or similar)
+    var colorPlatesCorrect: Int?
+    var colorPlatesTotal:   Int?
+
+    // Refraction (sphere/cylinder in diopters)
+    var refractionSphereRight:   Double?
+    var refractionCylinderRight: Double?
+    var refractionSphereLeft:    Double?
+    var refractionCylinderLeft:  Double?
+
     init(
         id: UUID = UUID(),
         createdAt: Date = .init(),
@@ -81,7 +105,7 @@ final class CheckupRecord {
         weightKg: Double,
         // keep all optionals defaulted to nil:
         fatPercent: Double? = nil,
-        waistCm: Double? = nil,   // or rename to waistCm if that was a typo
+        waistCm: Double? = nil,
         systolic: Double? = nil,
         diastolic: Double? = nil,
         rbcMillionPeruL: Double? = nil,
@@ -94,7 +118,7 @@ final class CheckupRecord {
         ggt: Double? = nil,
         totalProtein: Double? = nil,
         albumin: Double? = nil,
-        creatinine: Double? = nil,   // consider renaming to creatinine
+        creatinine: Double? = nil,
         uricAcid: Double? = nil,
         fastingGlucoseMgdl: Double? = nil,
         hba1cNgspPercent: Double? = nil,
