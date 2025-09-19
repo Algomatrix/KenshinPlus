@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import SwiftUICore
 
 // Persistable enums (SwiftData-Friendly)
 enum SDGender: String, Codable, CaseIterable {
@@ -15,6 +16,11 @@ enum SDGender: String, Codable, CaseIterable {
 enum SDLengthUnit: String, Codable, CaseIterable { case cm, ft }
 enum SDWeightUnit: String, Codable, CaseIterable { case kg, pounds }
 enum EyeSide: String, CaseIterable { case right = "Right", left = "Left" }
+enum TestResultState: String, Codable, CaseIterable {
+    case good, normal, bad
+    var title: String { rawValue.capitalized }
+    var color: Color { self == .good ? .green : self == .normal ? .yellow : .red }
+}
 
 @Model
 final class CheckupRecord {
@@ -95,6 +101,12 @@ final class CheckupRecord {
     var refractionCylinderRight: Double?
     var refractionSphereLeft:    Double?
     var refractionCylinderLeft:  Double?
+
+    // Hearing
+    var hearingLeft1kHz: TestResultState?
+    var hearingRight1kHz: TestResultState?
+    var hearingLeft4kHz: TestResultState?
+    var hearingRight4kHz: TestResultState?
 
     init(
         id: UUID = UUID(),

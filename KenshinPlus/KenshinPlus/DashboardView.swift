@@ -118,7 +118,7 @@ struct DashboardView: View {
                     }
                     
                     NavigationLink(
-                        destination: HearingTestView(results: [HearingResult(ear: .allCases.randomElement()!, band: .allCases.randomElement()!, state: .allCases.randomElement()!)])
+                        destination: HearingTestView(records: records)
                     ) {
                         DataAtGlanceContainerSmall(
                             title: "Hearing",

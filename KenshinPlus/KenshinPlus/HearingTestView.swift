@@ -7,21 +7,6 @@
 
 import SwiftUI
 
-enum TestResultState: String, CaseIterable {
-    case good = "Good"
-    case normal = "Normal"
-    case bad = "Bad"
-
-    var title: String { rawValue }
-    var color: Color {
-        switch self {
-        case .good:   .green
-        case .normal: .yellow
-        case .bad:    .red
-        }
-    }
-}
-
 enum Ear: String, CaseIterable {
     case left = "Left Ear"
     case right = "Right Ear"
@@ -42,8 +27,9 @@ struct HearingResult: Identifiable, Equatable {
 }
 
 struct HearingTestView: View {
-    // Inject your results here (from API, DB, etc.)
-    let results: [HearingResult]
+    let records: [CheckupRecord]
+
+    private var results: [HearingResult] { records.hearingResults() }
 
     private let cols = [GridItem(.flexible(), spacing: 16),
                         GridItem(.flexible(), spacing: 16)]
@@ -92,10 +78,11 @@ private struct ResultCard: View {
 }
 
 #Preview {
-    HearingTestView(results: [
-        .init(ear: .left,  band: .k1, state: .good),
-        .init(ear: .right, band: .k1, state: .normal),
-        .init(ear: .left,  band: .k4, state: .good),
-        .init(ear: .right, band: .k4, state: .normal),
-    ])
+    let r = CheckupRecord(date: .now, gender: .male, heightCm: 170, weightKg: 70)
+    r.hearingLeft1kHz = .good
+    r.hearingRight1kHz = .normal
+    r.hearingLeft4kHz = .bad
+    r.hearingRight4kHz = .good
+
+    return HearingTestView(records: [r])
 }

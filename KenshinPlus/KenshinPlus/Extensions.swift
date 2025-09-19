@@ -15,19 +15,20 @@ struct MetricSample: Identifiable {
 }
 
 extension Collection where Element == CheckupRecord {
-    func metricSamples(_ keyPath: KeyPath,
+    func metricSamples(_ keyPath: KeyPath<CheckupRecord, Double?>,
                        limit: Int? = nil) -> [MetricSample] {
         var out = self.compactMap { rec -> MetricSample? in
             guard let v = rec[keyPath: keyPath] else { return nil }
             return MetricSample(date: rec.date, value: v)
         }
-            .sorted { $0.date < $1.date }
+        .sorted { $0.date < $1.date }
+        
         if let limit, out.count > limit { out = Array(out.suffix(limit)) }
         return out
     }
 
     // Convenience: latest value for a metric
-    func latestValue(_ keyPath: KeyPath) -> Double? {
+    func latestValue(_ keyPath: KeyPath<CheckupRecord, Double?>) -> Double? {
         self.metricSamples(keyPath).last?.value
     }
     
@@ -94,5 +95,23 @@ extension Collection where Element == CheckupRecord {
         let lo = cal.date(byAdding: .day, value: -1, to: minD)!
         let hi = cal.date(byAdding: .day, value:  1, to: maxD)!
         return lo...hi
+    }
+
+    func hearingResults() -> [HearingResult] {
+        guard let latest = self.sorted(by: { $0.date > $1.date }).first else { return [] }
+        var out: [HearingResult] = []
+        if let s = latest.hearingLeft1kHz {
+            out.append(HearingResult(ear: .left, band: .k1, state: s))
+        }
+        if let s = latest.hearingRight1kHz {
+            out.append(HearingResult(ear: .right, band: .k1, state: s))
+        }
+        if let s = latest.hearingLeft4kHz {
+            out.append(HearingResult(ear: .left, band: .k4, state: s))
+        }
+        if let s = latest.hearingRight4kHz {
+            out.append(HearingResult(ear: .right, band: .k4, state: s))
+        }
+        return out
     }
 }
