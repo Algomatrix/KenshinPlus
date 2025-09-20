@@ -26,6 +26,12 @@ struct HearingResult: Identifiable, Equatable {
     let state: TestResultState
 }
 
+enum TestResultState: String, Codable, CaseIterable {
+    case good, normal, bad
+    var title: String { rawValue.capitalized }
+    var color: Color { self == .good ? .green : self == .normal ? .yellow : .red }
+}
+
 struct HearingTestView: View {
     let records: [CheckupRecord]
 

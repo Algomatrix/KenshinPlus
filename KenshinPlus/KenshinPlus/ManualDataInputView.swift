@@ -49,6 +49,28 @@ struct ManualDataInputView: View {
     @State private var hdl: Double = 52
     @State private var ldl: Double = 118
     @State private var triglycerides: Double = 140
+    
+    // --- Eye (state for inputs)
+    @State private var uncorrectedRight: Double = 1.0
+    @State private var uncorrectedLeft:  Double = 1.0
+    @State private var correctedRight:   Double = 1.2
+    @State private var correctedLeft:    Double = 1.2
+
+    @State private var iopRight: Double = 16
+    @State private var iopLeft:  Double = 16
+    @State private var nearBothEyes: Double = 1.0
+    @State private var colorPlatesCorrect: Int = 14
+    @State private var colorPlatesTotal:   Int = 14
+    @State private var rSphere: Double = -2.00
+    @State private var rCylinder: Double = -0.50
+    @State private var lSphere: Double = -1.75
+    @State private var lCylinder: Double = -0.25
+
+    // --- Hearing (state for inputs)
+    @State private var hearingL1k:  TestResultState = .normal
+    @State private var hearingR1k:  TestResultState = .normal
+    @State private var hearingL4k:  TestResultState = .normal
+    @State private var hearingR4k:  TestResultState = .normal
 
     var body: some View {
         ScrollView {
@@ -111,6 +133,36 @@ struct ManualDataInputView: View {
                 PutBarChartInContainer(title: "Lipid Data") {
                     ManualDataLipids(gender: $gender, totalCholesterol: $totalCholesterol, hdl: $hdl, ldl: $ldl, triglycerides: $triglycerides)
                 }
+                
+                Text("Oprional Data")
+                    .foregroundStyle(.secondary)
+                
+                PutBarChartInContainer(title: "Eye Test Data") {
+                    ManualDataEyeInput(
+                        uncorrectedRight: $uncorrectedRight,
+                        uncorrectedLeft:  $uncorrectedLeft,
+                        correctedRight:   $correctedRight,
+                        correctedLeft:    $correctedLeft,
+                        iopRight:         $iopRight,
+                        iopLeft:          $iopLeft,
+                        nearBothEyes:     $nearBothEyes,
+                        colorPlatesCorrect: $colorPlatesCorrect,
+                        colorPlatesTotal:   $colorPlatesTotal,
+                        rSphere: $rSphere,
+                        rCylinder: $rCylinder,
+                        lSphere: $lSphere,
+                        lCylinder: $lCylinder
+                    )
+                }
+
+                PutBarChartInContainer(title: "Hearing Test Data") {
+                    ManualDataHearingInput(
+                        left1k:  $hearingL1k,
+                        right1k: $hearingR1k,
+                        left4k:  $hearingL4k,
+                        right4k: $hearingR4k
+                    )
+                }
 
                 Button {
                     saveRecord()
@@ -169,7 +221,24 @@ struct ManualDataInputView: View {
             ldl: ldl,
             triglycerides: triglycerides,
             lengthUnit: (unit == .cm ? .cm : .ft),
-            weightUnit: (weightUnit == .Kg ? .kg : .pounds)
+            weightUnit: (weightUnit == .Kg ? .kg : .pounds),
+            uncorrectedAcuityRight: uncorrectedRight,
+            uncorrectedAcuityLeft: uncorrectedLeft,
+            correctedAcuityRight: correctedRight,
+            correctedAcuityLeft: correctedLeft,
+            iopRight: iopRight,
+            iopLeft: iopLeft,
+            nearAcuityBoth: nearBothEyes,
+            colorPlatesCorrect: colorPlatesCorrect,
+            colorPlatesTotal: colorPlatesTotal,
+            refractionSphereRight: rSphere,
+            refractionCylinderRight: rCylinder,
+            refractionSphereLeft: lSphere,
+            refractionCylinderLeft: lCylinder,
+            hearingLeft1kHz: hearingL1k,
+            hearingRight1kHz: hearingR1k,
+            hearingLeft4kHz: hearingL4k,
+            hearingRight4kHz: hearingR4k
         )
         modelContext.insert(record)
         // SwiftData autosaves on runloop; if you want explicit:
@@ -1052,6 +1121,148 @@ struct ManualDataLipids: View {
     }
 }
 
+struct ManualDataEyeInput: View {
+    // Acuity
+    @Binding var uncorrectedRight: Double
+    @Binding var uncorrectedLeft:  Double
+    @Binding var correctedRight:   Double
+    @Binding var correctedLeft:    Double
+    // IOP
+    @Binding var iopRight: Double
+    @Binding var iopLeft:  Double
+    
+    // Near Vision & Color Vision
+    @Binding var nearBothEyes: Double
+    @Binding var colorPlatesCorrect: Int
+    @Binding var colorPlatesTotal:   Int
+    
+    // Refraction
+    @Binding var rSphere: Double
+    @Binding var rCylinder: Double
+    @Binding var lSphere: Double
+    @Binding var lCylinder: Double
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Eye Test").font(.title3).bold()
+
+            // Acuity (JP decimal)
+            Group {
+                Text("Visual Acuity (JP decimal)").font(.headline)
+                VStack {
+                    LabeledNumberField(title: "Uncorrected R", value: $uncorrectedRight, precision: 0...2, unitText: nil, systemImage: "eye", keyboard: .decimalPad)
+                    LabeledNumberField(title: "Uncorrected L", value: $uncorrectedLeft,  precision: 0...2, unitText: nil, systemImage: "eye", keyboard: .decimalPad)
+                }
+                VStack {
+                    LabeledNumberField(title: "Corrected R",   value: $correctedRight, precision: 0...2, unitText: nil, systemImage: "eyeglasses", keyboard: .decimalPad)
+                    LabeledNumberField(title: "Corrected L",   value: $correctedLeft,  precision: 0...2, unitText: nil, systemImage: "eyeglasses", keyboard: .decimalPad)
+                }
+            }
+            Divider()
+            // IOP
+            Group {
+                Text("Intraocular Pressure (mmHg)").font(.headline)
+                VStack {
+                    LabeledNumberField(title: "Right IOP", value: $iopRight, precision: 0...0, unitText: "mmHg", systemImage: "gauge", keyboard: .numberPad)
+                    LabeledNumberField(title: "Left IOP",  value: $iopLeft,  precision: 0...0, unitText: "mmHg", systemImage: "gauge", keyboard: .numberPad)
+                }
+            }
+            Divider()
+
+            // Near vision & Color vision
+            Group {
+                Text("Near Vision & Color Vision").font(.headline)
+                LabeledNumberField(title: "Near Vision (both eyes)", value: $nearBothEyes, precision: 0...2, unitText: nil, systemImage: "book", keyboard: .decimalPad)
+                HStack {
+                    LabeledNumberField_Int(title: "Plates Correct", value: $colorPlatesCorrect, unitText: nil, systemImage: "circle.grid.3x3", keyboard: .numberPad)
+                    LabeledNumberField_Int(title: "Plates Total",   value: $colorPlatesTotal,   unitText: nil, systemImage: "circle.grid.3x3", keyboard: .numberPad)
+                }
+            }
+            Divider()
+
+            // Refraction
+            Group {
+                Text("Refraction (Diopters)").font(.headline)
+                VStack {
+                    LabeledNumberField(title: "Right Sphere",   value: $rSphere,   precision: 0...2, unitText: "D", systemImage: "circle.righthalf.filled", keyboard: .decimalPad)
+                    LabeledNumberField(title: "Right Cylinder", value: $rCylinder, precision: 0...2, unitText: "D", systemImage: "circle.righthalf.filled", keyboard: .decimalPad)
+                }
+                VStack {
+                    LabeledNumberField(title: "Left Sphere",    value: $lSphere,   precision: 0...2, unitText: "D", systemImage: "circle.lefthalf.filled", keyboard: .decimalPad)
+                    LabeledNumberField(title: "Left Cylinder",  value: $lCylinder, precision: 0...2, unitText: "D", systemImage: "circle.lefthalf.filled", keyboard: .decimalPad)
+                }
+            }
+        }
+    }
+}
+
+/// small integer field helper mirroring LabeledNumberField
+struct LabeledNumberField_Int: View {
+    let title: String
+    @Binding var value: Int
+    var unitText: String? = nil
+    var systemImage: String? = nil
+    var keyboard: UIKeyboardType = .numberPad
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            if let systemImage {
+                Image(systemName: systemImage)
+            }
+            Text(title)
+            TextField("", value: $value, format: .number)
+                .keyboardType(keyboard)
+                .textFieldStyle(.roundedBorder)
+            if let unitText {
+                Text(unitText).foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
+struct ManualDataHearingInput: View {
+    @Binding var left1k:  TestResultState
+    @Binding var right1k: TestResultState
+    @Binding var left4k:  TestResultState
+    @Binding var right4k: TestResultState
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Hearing Test").font(.title3).bold()
+
+            HearingRow(title: "1 kHz", left: $left1k, right: $right1k)
+            HearingRow(title: "4 kHz", left: $left4k, right: $right4k)
+        }
+    }
+}
+
+private struct HearingRow: View {
+    let title: String
+    @Binding var left: TestResultState
+    @Binding var right: TestResultState
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title).font(.headline)
+            HStack {
+                Picker("Left", selection: $left) {
+                    ForEach(TestResultState.allCases, id: \.self) { s in
+                        Text(s.title).tag(s)
+                    }
+                }
+                .pickerStyle(.segmented)
+
+                Picker("Right", selection: $right) {
+                    ForEach(TestResultState.allCases, id: \.self) { s in
+                        Text(s.title).tag(s)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+        }
+    }
+}
+
 struct UnitPicker: View {
     @Binding var unit: LengthUnit
 
@@ -1077,140 +1288,3 @@ struct RangeSeg: Identifiable {
 #Preview {
     ManualDataInputView()
 }
-
-/*
-
-
-
-
-/// Compact colored legend chip. Drive a row from your segments if you want.
-struct LabelChip: View {
-    let color: Color
-    let text: String
-    var body: some View {
-        HStack(spacing: 6) {
-            Rectangle().frame(width: 10, height: 10).foregroundStyle(color)
-            Text(text).font(.caption)
-        }
-    }
-}
-
-
-
-// MARK: - Your screen (using the blocks)
-
-struct ManualDataInputView: View {
-    @State private var date: Date = .init()
-    @State private var unit: LengthUnit = .cm
-    @State private var heightCm: Double = 170
-    @State private var gender: Gender = .Male
-    @State private var weightKg: Double = 65
-    @State private var weightUnit: WeightUnit = .Kg
-    @State private var fatPercent: Double = 20
-    @State private var abdominalGirthCm: Double = 85
-
-    // BMI
-    private var bmi: Double {
-        let m = heightCm / 100
-        return max(0, weightKg / max(0.0001, m*m))
-    }
-    private let bmiDomain: ClosedRange<Double> = 10...40
-
-    // Waist (gender-based)
-    private var waistDomain: ClosedRange<Double> { 50...130 }
-    private var waistSegments: [RangeSeg] {
-        switch gender {
-        case .Male:
-            return [
-                .init(label: "Reference", start: 60, end: 90, color: .green.opacity(0.7)),
-                .init(label: "Slightly abnormal", start: 90, end: 100, color: .yellow.opacity(0.7)),
-                .init(label: "Follow-up", start: 100, end: 110, color: .orange.opacity(0.7)),
-                .init(label: "Medical care", start: 110, end: waistDomain.upperBound, color: .red.opacity(0.7))
-            ]
-        case .Female:
-            return [
-                .init(label: "Reference", start: 55, end: 80, color: .green.opacity(0.7)),
-                .init(label: "Slightly abnormal", start: 80, end: 90, color: .yellow.opacity(0.7)),
-                .init(label: "Follow-up", start: 90, end: 100, color: .orange.opacity(0.7)),
-                .init(label: "Medical care", start: 100, end: waistDomain.upperBound, color: .red.opacity(0.7))
-            ]
-        }
-    }
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                // Top controls (date, unit, gender)
-                HStack {
-                    Image(systemName: "calendar")
-                    DatePicker("Date", selection: $date, displayedComponents: .date)
-                }
-                HStack {
-                    EnumSegmentedPicker(title: "Gender", selection: $gender)
-                    EnumSegmentedPicker(title: "Length Unit", selection: $unit)
-                }
-                Divider()
-
-                // Height (reuse your wheel picker logic — omitted here for brevity)
-                Text("Height: \(heightCm, specifier: "%.1f") cm")
-
-                // Weight (binding converts kg/lb as before)
-                HStack {
-                    Text("Weight")
-                    Spacer()
-                    // Keep your weightDisplayBinding if you have it; here we just use $weightKg for brevity.
-                    TextField("Weight", value: $weightKg, format: .number.precision(.fractionLength(0...1)))
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 120)
-                    EnumSegmentedPicker(title: "Weight Unit", selection: $weightUnit)
-                        .frame(maxWidth: 180)
-                }
-                .padding(.vertical, 4)
-
-                // BMI (auto) + bar
-                LabeledNumberField(title: "BMI (auto)", value: .constant(bmi),
-                                   precision: 0...1, unitText: nil, systemImage: "scalemass")
-                    .disabled(true)
-
-                MeasurementBar(
-                    title: "BMI",
-                    value: bmi,
-                    domain: bmiDomain,
-                    segments: bmiSegments,
-                    valueFormatter: { String(format: "%.1f", $0) }
-                )
-
-                LegendRow(items: [
-                    (.green.opacity(0.7), "Reference"),
-                    (.red.opacity(0.7), "Follow-up")
-                ])
-                Divider()
-
-                // Fat %
-                LabeledNumberField(title: "Fat %", value: $fatPercent,
-                                   precision: 0...1, unitText: "%", systemImage: "percent")
-
-                // Abdominal girth + bar
-                LabeledNumberField(title: "Abdominal girth", value: $abdominalGirthCm,
-                                   precision: 0...1, unitText: "cm", systemImage: "ruler")
-
-                MeasurementBar(
-                    title: "Waist",
-                    value: abdominalGirthCm,
-                    domain: waistDomain,
-                    segments: waistSegments,
-                    valueFormatter: { String(format: "%.1f cm", $0) }
-                )
-
-                LegendRow(items: [
-                    (.green.opacity(0.7), "Reference"),
-                    (.yellow.opacity(0.7), "Slightly abnormal"),
-                    (.orange.opacity(0.7), "Follow-up"),
-                    (.red.opacity(0.7), "Medical care")
-                ])
-            }
-            .padding()
-        }
-    }
-}
-*/

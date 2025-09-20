@@ -7,20 +7,11 @@
 
 import Foundation
 import SwiftData
-import SwiftUICore
 
-// Persistable enums (SwiftData-Friendly)
-enum SDGender: String, Codable, CaseIterable {
-    case male, female
-}
+enum SDGender: String, Codable, CaseIterable { case male, female }
 enum SDLengthUnit: String, Codable, CaseIterable { case cm, ft }
 enum SDWeightUnit: String, Codable, CaseIterable { case kg, pounds }
 enum EyeSide: String, CaseIterable { case right = "Right", left = "Left" }
-enum TestResultState: String, Codable, CaseIterable {
-    case good, normal, bad
-    var title: String { rawValue.capitalized }
-    var color: Color { self == .good ? .green : self == .normal ? .yellow : .red }
-}
 
 @Model
 final class CheckupRecord {
@@ -28,86 +19,87 @@ final class CheckupRecord {
     @Attribute(.unique) var id: UUID
     var createdAt: Date
     var date: Date
-    
-    // Basic info / anthropometrics
+
+    // Anthropometrics
     var gender: SDGender
     var heightCm: Double
     var weightKg: Double
     var fatPercent: Double?
     var waistCm: Double?
-    
+
     // Blood Pressure
     var systolic: Double?
     var diastolic: Double?
-    
-    // Blood test (CBC core)
+
+    // CBC
     var rbcMillionPeruL: Double?
     var hgbPerdL: Double?
     var hctPercent: Double?
     var pltThousandPeruL: Double?
     var wbcThousandPeruL: Double?
-    
-    // Liver Function
+
+    // Liver
     var ast: Double?
     var alt: Double?
     var ggt: Double?
     var totalProtein: Double?
     var albumin: Double?
-    
+
     // Renal / Urate
     var creatinine: Double?
     var uricAcid: Double?
-    
+
     // Metabolism
     var fastingGlucoseMgdl: Double?
     var hba1cNgspPercent: Double?
-    
+
     // Lipids
     var totalChol: Double?
     var hdl: Double?
     var ldl: Double?
     var triglycerides: Double?
-    
-    // UI Prefs (How the user enetered things)
+
+    // UI prefs
     var lengthUnit: SDLengthUnit
     var weightUnit: SDWeightUnit
-    
-    // Derived & convenience
+
+    // Derived
     var bmi: Double {
         guard heightCm > 0 else { return 0 }
         let m = heightCm / 100.0
         return weightKg / (m * m)
     }
 
-    // Visual acuity (Japanese decimal, e.g. 1.2). Store both and prefer corrected when present.
+    // EYE — acuity (names matched to your extension)
     var uncorrectedAcuityRight: Double?
     var uncorrectedAcuityLeft:  Double?
     var correctedAcuityRight:   Double?
     var correctedAcuityLeft:    Double?
 
-    // Near vision (both eyes together), same decimal scale
-    var nearAcuityBoth: Double?
-
-    // Intraocular pressure (mmHg)
+    // EYE — IOP
     var iopRight: Double?
     var iopLeft:  Double?
 
-    // Color vision (Ishihara plates or similar)
+    // EYE — near vision
+    var nearAcuityBoth: Double?
+
+    // EYE — color vision
     var colorPlatesCorrect: Int?
     var colorPlatesTotal:   Int?
 
-    // Refraction (sphere/cylinder in diopters)
+    // EYE — refraction
     var refractionSphereRight:   Double?
     var refractionCylinderRight: Double?
     var refractionSphereLeft:    Double?
     var refractionCylinderLeft:  Double?
 
-    // Hearing
-    var hearingLeft1kHz: TestResultState?
+    // HEARING — 1k / 4k Hz snapshots
+    var hearingLeft1kHz:  TestResultState?
     var hearingRight1kHz: TestResultState?
-    var hearingLeft4kHz: TestResultState?
+    var hearingLeft4kHz:  TestResultState?
     var hearingRight4kHz: TestResultState?
 
+    // MARK: Init
     init(
         id: UUID = UUID(),
         createdAt: Date = .init(),
@@ -115,7 +107,6 @@ final class CheckupRecord {
         gender: SDGender,
         heightCm: Double,
         weightKg: Double,
-        // keep all optionals defaulted to nil:
         fatPercent: Double? = nil,
         waistCm: Double? = nil,
         systolic: Double? = nil,
@@ -139,7 +130,26 @@ final class CheckupRecord {
         ldl: Double? = nil,
         triglycerides: Double? = nil,
         lengthUnit: SDLengthUnit = .cm,
-        weightUnit: SDWeightUnit = .kg
+        weightUnit: SDWeightUnit = .kg,
+        // eye defaults matching extension
+        uncorrectedAcuityRight: Double? = nil,
+        uncorrectedAcuityLeft:  Double? = nil,
+        correctedAcuityRight:   Double? = nil,
+        correctedAcuityLeft:    Double? = nil,
+        iopRight: Double? = nil,
+        iopLeft:  Double? = nil,
+        nearAcuityBoth: Double? = nil,
+        colorPlatesCorrect: Int? = nil,
+        colorPlatesTotal:   Int? = nil,
+        refractionSphereRight:   Double? = nil,
+        refractionCylinderRight: Double? = nil,
+        refractionSphereLeft:    Double? = nil,
+        refractionCylinderLeft:  Double? = nil,
+        // hearing defaults
+        hearingLeft1kHz:  TestResultState? =  .none,
+        hearingRight1kHz: TestResultState? =  .none,
+        hearingLeft4kHz:  TestResultState? =  .none,
+        hearingRight4kHz: TestResultState? = .none
     ) {
         self.id = id
         self.createdAt = createdAt
@@ -171,5 +181,24 @@ final class CheckupRecord {
         self.triglycerides = triglycerides
         self.lengthUnit = lengthUnit
         self.weightUnit = weightUnit
+
+        self.uncorrectedAcuityRight = uncorrectedAcuityRight
+        self.uncorrectedAcuityLeft  = uncorrectedAcuityLeft
+        self.correctedAcuityRight   = correctedAcuityRight
+        self.correctedAcuityLeft    = correctedAcuityLeft
+        self.iopRight = iopRight
+        self.iopLeft  = iopLeft
+        self.nearAcuityBoth = nearAcuityBoth
+        self.colorPlatesCorrect = colorPlatesCorrect
+        self.colorPlatesTotal   = colorPlatesTotal
+        self.refractionSphereRight   = refractionSphereRight
+        self.refractionCylinderRight = refractionCylinderRight
+        self.refractionSphereLeft    = refractionSphereLeft
+        self.refractionCylinderLeft  = refractionCylinderLeft
+
+        self.hearingLeft1kHz  = hearingLeft1kHz
+        self.hearingRight1kHz = hearingRight1kHz
+        self.hearingLeft4kHz  = hearingLeft4kHz
+        self.hearingRight4kHz = hearingRight4kHz
     }
 }
