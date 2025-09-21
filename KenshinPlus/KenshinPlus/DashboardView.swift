@@ -184,7 +184,7 @@ struct DashboardView: View {
     
     private var latestWeightText: String {
         guard let r = latest else { return "-" }
-        return String(format: "%.1f kg", r.weightKg)
+        return String(format: "%.1f kg", r.weightKg!)
     }
     
     // Latest Fat percent
@@ -196,7 +196,7 @@ struct DashboardView: View {
     // Latest Height
     private var latestHeightText: String {
         guard let r = latest else { return "-" }
-        return String(format: "%.1f cm", r.heightCm)
+        return String(format: "%.1f cm", r.heightCm!)
     }
     
     // Latest BMI
@@ -217,8 +217,8 @@ struct CheckupDetailView: View {
                 Text("Male").tag(SDGender.male)
                 Text("Female").tag(SDGender.female)
             }
-            LabeledNumberField(title: "Height", value: $record.heightCm, precision: 0...1, unitText: "cm")
-            LabeledNumberField(title: "Weight", value: $record.weightKg, precision: 0...1, unitText: "kg")
+            LabeledNumberField(title: "Height", value: $record.heightCm, precision: 1, unitText: "cm")
+            LabeledNumberField(title: "Weight", value: $record.weightKg, precision: 1, unitText: "kg")
             Text("BMI: \(String(format: "%.1f", record.bmi))")
         }
         .navigationTitle("Checkup")

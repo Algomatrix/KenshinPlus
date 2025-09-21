@@ -20,51 +20,50 @@ struct ManualDataInputView: View {
     @State private var weightKg: Double = 65.0
     @State private var weightUnit: WeightUnit = .Kg
 
-    @State private var systolic: Double = 120
-    @State private var diastolic: Double = 80
-    @State private var rbcMillionPeruL: Double = 10
-    @State private var hgbPerdL: Double = 10
-    @State private var hctPercent: Double = 10
-    @State private var pltThousandPeruL: Double = 10
-    @State private var wbcThousandPeruL: Double = 10
+    @State private var systolic: Double? = nil
+    @State private var diastolic: Double? = nil
+    @State private var rbcMillionPeruL: Double? = nil
+    @State private var hgbPerdL: Double? = nil
+    @State private var hctPercent: Double? = nil
+    @State private var pltThousandPeruL: Double? = nil
+    @State private var wbcThousandPeruL: Double? = nil
 
     
     // Fat % and Abdominal girth
-    @State private var fatPercent: Double = 20.0
-    @State private var abdominalGirthCm: Double = 85.0
-    
-    @State private var ast: Double = 28
-    @State private var alt: Double = 32
-    @State private var ggt: Double = 42
-    @State private var totalProtein: Double = 7.2
-    @State private var albumin: Double = 4.4
+    @State private var fatPercent: Double? = nil
+    @State private var abdominalGirthCm: Double? = nil
+    @State private var ast: Double? = nil
+    @State private var alt: Double? = nil
+    @State private var ggt: Double? = nil
+    @State private var totalProtein: Double? = nil
+    @State private var albumin: Double? = nil
 
-    @State private var creatinine: Double = 0.98
-    @State private var uricAcid: Double = 6.2
+    @State private var creatinine: Double? = nil
+    @State private var uricAcid: Double? = nil
 
-    @State private var fastingBloodGlucose: Double = 60.0
-    @State private var hbA1c: Double = 4.0
+    @State private var fastingBloodGlucose: Double? = nil
+    @State private var hbA1c: Double? = nil
 
-    @State private var totalCholesterol: Double = 195
-    @State private var hdl: Double = 52
-    @State private var ldl: Double = 118
-    @State private var triglycerides: Double = 140
+    @State private var totalCholesterol: Double? = nil
+    @State private var hdl: Double? = nil
+    @State private var ldl: Double? = nil
+    @State private var triglycerides: Double? = nil
     
     // --- Eye (state for inputs)
-    @State private var uncorrectedRight: Double = 1.0
-    @State private var uncorrectedLeft:  Double = 1.0
-    @State private var correctedRight:   Double = 1.2
-    @State private var correctedLeft:    Double = 1.2
+    @State private var uncorrectedRight: Double? = nil
+    @State private var uncorrectedLeft:  Double? = nil
+    @State private var correctedRight:   Double? = nil
+    @State private var correctedLeft:    Double? = nil
 
-    @State private var iopRight: Double = 16
-    @State private var iopLeft:  Double = 16
-    @State private var nearBothEyes: Double = 1.0
-    @State private var colorPlatesCorrect: Int = 14
-    @State private var colorPlatesTotal:   Int = 14
-    @State private var rSphere: Double = -2.00
-    @State private var rCylinder: Double = -0.50
-    @State private var lSphere: Double = -1.75
-    @State private var lCylinder: Double = -0.25
+    @State private var iopRight: Double? = nil
+    @State private var iopLeft:  Double? = nil
+    @State private var nearBothEyes: Double? = nil
+    @State private var colorPlatesCorrect: Int? = nil
+    @State private var colorPlatesTotal:   Int? = nil
+    @State private var rSphere: Double? = nil
+    @State private var rCylinder: Double? = nil
+    @State private var lSphere: Double? = nil
+    @State private var lCylinder: Double? = nil
 
     // --- Hearing (state for inputs)
     @State private var hearingL1k:  TestResultState = .normal
@@ -91,17 +90,19 @@ struct ManualDataInputView: View {
                 PutBarChartInContainer(title: "Blood Pressure") {
                     ManualDataBloodPressure(
                         systolic: $systolic,
-                        diastolic: $diastolic,
-                        rbcMillionPeruL: $rbcMillionPeruL,
-                        hgbPerdL: $hgbPerdL,
-                        hctPercent: $hctPercent,
-                        pltThousandPeruL: $pltThousandPeruL,
-                        wbcThousandPeruL: $wbcThousandPeruL
+                        diastolic: $diastolic
                     )
                 }
 
                 PutBarChartInContainer(title: "Blood Test") {
-                    ManualDataBloodTest(gender: $gender)
+                    ManualDataBloodTest(
+                        gender: $gender,
+                        rbc: $rbcMillionPeruL,
+                        hgb: $hgbPerdL,
+                        hct: $hctPercent,
+                        plt: $pltThousandPeruL,
+                        wbc: $wbcThousandPeruL
+                    )
                 }
 
                 PutBarChartInContainer(title: "Liver Function") {
@@ -241,7 +242,7 @@ struct ManualDataInputView: View {
             hearingRight4kHz: hearingR4k
         )
         modelContext.insert(record)
-        // SwiftData autosaves on runloop; if you want explicit:
+        // SwiftData autosaves on runloop
         try? modelContext.save()
     }
 }
@@ -253,8 +254,8 @@ struct ManualDataBasicInfoArea: View {
     @Binding var gender: Gender
     @Binding var weightKg: Double
     @Binding var weightUnit: WeightUnit
-    @Binding var fatPercent: Double
-    @Binding var abdominalGirthCm: Double
+    @Binding var fatPercent: Double?
+    @Binding var abdominalGirthCm: Double?
 
     // Local state only for the feet/inches UI
     @State private var feet: Int = 5
@@ -315,8 +316,11 @@ struct ManualDataBasicInfoArea: View {
 
             inputBodyWeight
             Divider()
-
-            LabeledNumberField(title: "BMI (auto):", value: .constant(bmi), precision: 0...1, unitText: nil, systemImage: "scalemass").disabled(true)
+            HStack {
+                Image(systemName: "scalemass")
+                Text("BMI (auto): \(bmiString)")
+                    .font(.headline)
+            }
 
             // --- BMI reference bar with current BMI rule ---
             MeasurementBar(
@@ -326,8 +330,7 @@ struct ManualDataBasicInfoArea: View {
                 segments: bmiSegments,
                 valueFormatter: { String(format: "%.1f", $0) }
             )
-            
-            
+
             Usual2Reference()
             Divider()
 
@@ -335,17 +338,19 @@ struct ManualDataBasicInfoArea: View {
 
             Divider()
 
-            LabeledNumberField(title: "Abdominal girth", value: $abdominalGirthCm, precision: 0...1, unitText: nil, systemImage: "ruler", keyboard: .decimalPad)
+            LabeledNumberField(title: "Abdominal girth", value: $abdominalGirthCm, precision: 1, unitText: "cm", systemImage: "ruler", keyboard: .decimalPad)
                 .accessibilityLabel("Abdominal girth")
             
-            // Wasit Range Chart
-            MeasurementBar(
-                title: "Waist",
-                value: abdominalGirthCm,
-                domain: waistDomain,
-                segments: waistSegments,
-                valueFormatter: { String(format: "%.1f cm", $0) }
-            )
+            if let abdo = abdominalGirthCm {
+                // Wasit Range Chart
+                MeasurementBar(
+                    title: "Waist",
+                    value: abdo,
+                    domain: waistDomain,
+                    segments: waistSegments,
+                    valueFormatter: { String(format: "%.1f cm", $0) }
+                )
+            }
             
             Usual4Reference()
         }
@@ -364,17 +369,16 @@ struct ManualDataBasicInfoArea: View {
         return (f, min(i, 11))
     }
     
-    private var weightDisplayBinding: Binding<Double> {
-        Binding<Double> {
+    private var weightDisplayBinding: Binding<Double?> {
+        Binding<Double?> {
             switch weightUnit {
-            case .Kg:
-                return weightKg
-            case .Pounds:
-                return weightKg * 2.20462
+            case .Kg:     return weightKg
+            case .Pounds: return weightKg * 2.20462
             }
         } set: { newValue in
-            // Clamp to a sensible range before converting back
-            let clamped = max(20, min(newValue, 400)) // 20–400 in the active unit
+            // if user clears the field, don’t modify the source
+            guard let newValue else { return }
+            let clamped = max(20, min(newValue, 400)) // sensible range in active unit
             switch weightUnit {
             case .Kg:
                 weightKg = clamped
@@ -452,9 +456,9 @@ struct ManualDataBasicInfoArea: View {
     }
     
     var inputBodyWeight: some View {
-        HStack {
-            LabeledNumberField(title: "Body\nWeight:", value: weightDisplayBinding, precision: 0...1, unitText: nil, systemImage: "figure", keyboard: .numberPad)
-                .focused($weightFocused)
+        VStack {
+            LabeledNumberField(title: "Body Weight:", value: weightDisplayBinding, precision: 1, unitText: nil, systemImage: "figure", keyboard: .numberPad)
+                    .focused($weightFocused)
             Picker("Weight", selection: $weightUnit) {
                 ForEach(WeightUnit.allCases) { weightUnit in
                     Text(weightUnit.rawValue).tag(weightUnit)
@@ -465,24 +469,13 @@ struct ManualDataBasicInfoArea: View {
     }
     
     var inputFatPercent: some View {
-        HStack {
-            Text("Fat:")
-            TextField("Enter Fat percentage", value: $fatPercent, format: .number.precision(.fractionLength(0...1)))
-                .textFieldStyle(.roundedBorder)
-                .keyboardType(.numberPad)
-            Image(systemName: "percent")
-        }
+        LabeledNumberField(title: "Body Fat:", value: $fatPercent, precision: 1, unitText: "%", systemImage: "figure", keyboard: .numberPad)
     }
 }
 
 struct ManualDataBloodPressure: View {
-    @Binding var systolic: Double
-    @Binding var diastolic: Double
-    @Binding var rbcMillionPeruL: Double
-    @Binding var hgbPerdL: Double
-    @Binding var hctPercent: Double
-    @Binding var pltThousandPeruL: Double
-    @Binding var wbcThousandPeruL: Double
+    @Binding var systolic: Double?
+    @Binding var diastolic: Double?
 
 
     // Systolic domain & segments
@@ -509,16 +502,18 @@ struct ManualDataBloodPressure: View {
             // Input fields
             LabeledNumberField(title: "Systolic",
                                value: $systolic,
-                               precision: 0...0,
+                               precision: 0,
                                unitText: "mmHg",
                                systemImage: "heart.fill",
                                keyboard: .numberPad)
 
-            MeasurementBar(title: "Systolic",
-                           value: systolic,
-                           domain: sysDomain,
-                           segments: sysSegments,
-                           valueFormatter: { "\(Int($0)) mmHg" })
+            if let sys = systolic {
+                MeasurementBar(title: "Systolic",
+                               value: sys,
+                               domain: sysDomain,
+                               segments: sysSegments,
+                               valueFormatter: { "\(Int($0)) mmHg" })
+            }
 
             LegendRow(items: [
                 (.green.opacity(0.7), "Normal"),
@@ -532,16 +527,18 @@ struct ManualDataBloodPressure: View {
 
             LabeledNumberField(title: "Diastolic",
                                value: $diastolic,
-                               precision: 0...0,
+                               precision: 0,
                                unitText: "mmHg",
                                systemImage: "heart.circle.fill",
                                keyboard: .numberPad)
 
-            MeasurementBar(title: "Diastolic",
-                           value: diastolic,
-                           domain: diaDomain,
-                           segments: diaSegments,
-                           valueFormatter: { "\(Int($0)) mmHg" })
+            if let dia = diastolic {
+                MeasurementBar(title: "Diastolic",
+                               value: dia,
+                               domain: diaDomain,
+                               segments: diaSegments,
+                               valueFormatter: { "\(Int($0)) mmHg" })
+            }
 
             LegendRow(items: [
                 (.green.opacity(0.7), "Normal"),
@@ -557,11 +554,11 @@ struct ManualDataBloodPressure: View {
 struct ManualDataBloodTest: View {
     @Binding var gender: Gender
 
-    @State private var rbc: Double = 4.8        // x10^6/µL
-    @State private var hgb: Double = 14.0       // g/dL
-    @State private var hct: Double = 42.0       // %
-    @State private var plt: Double = 250        // x10^3/µL
-    @State private var wbc: Double = 6.0        // x10^3/µL
+    @Binding var rbc: Double?       // x10^6/µL
+    @Binding var hgb: Double?       // g/dL
+    @Binding var hct: Double?       // %
+    @Binding var plt: Double?       // x10^3/µL
+    @Binding var wbc: Double?       // x10^3/µL
     
     // Domains
     private let rbcDomain: ClosedRange<Double> = 3.0...7.5      // x10^6/µL
@@ -641,35 +638,55 @@ struct ManualDataBloodTest: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             // RBC
-            LabeledNumberField(title: "RBC", value: $rbc, precision: 0...2, unitText: "×10⁶/µL", systemImage: "drop.fill", keyboard: .decimalPad)
-            MeasurementBar(title: "RBC", value: rbc, domain: rbcDomain, segments: rbcSegments, valueFormatter: { String(format: "%.2f ×10⁶/µL", $0) })
+            LabeledNumberField(title: "RBC", value: $rbc, precision: 2, unitText: "×10⁶/µL", systemImage: "drop.fill", keyboard: .decimalPad)
+
+            if let measureRbc = rbc {
+                MeasurementBar(title: "RBC", value: measureRbc, domain: rbcDomain, segments: rbcSegments, valueFormatter: { String(format: "%.2f ×10⁶/µL", $0) })
+            }
+
             LegendRow(items: [(.green.opacity(0.7), "Reference"), (.red.opacity(0.7), "Low/High")])
             Divider()
             
             // Hemoglobin
-            LabeledNumberField(title: "Hemoglobin", value: $hgb, precision: 0...1, unitText: "g/dL", systemImage: "drop.circle", keyboard: .decimalPad)
-            MeasurementBar(title: "Hemoglobin", value: hgb, domain: hgbDomain, segments: hgbSegments, valueFormatter: { String(format: "%.1f g/dL", $0) })
+            LabeledNumberField(title: "Hemoglobin", value: $hgb, precision: 1, unitText: "g/dL", systemImage: "drop.circle", keyboard: .decimalPad)
+
+            if let measureHgb = hgb {
+                MeasurementBar(title: "Hemoglobin", value: measureHgb, domain: hgbDomain, segments: hgbSegments, valueFormatter: { String(format: "%.1f g/dL", $0) })
+            }
+
             LegendRow(items: [(.green.opacity(0.7), "Reference"), (.red.opacity(0.7), "Low/High")])
             Divider()
 
             // Hematocrit
-            LabeledNumberField(title: "Hematocrit", value: $hct, precision: 0...1, unitText: "%", systemImage: "gauge", keyboard: .decimalPad)
-            MeasurementBar(title: "Hematocrit", value: hct, domain: hctDomain, segments: hctSegments,
-                           valueFormatter: { String(format: "%.1f %%", $0) })
+            LabeledNumberField(title: "Hematocrit", value: $hct, precision: 1, unitText: "%", systemImage: "gauge", keyboard: .decimalPad)
+
+            if let measureHct = hct {
+                MeasurementBar(title: "Hematocrit", value: measureHct, domain: hctDomain, segments: hctSegments,
+                               valueFormatter: { String(format: "%.1f %%", $0) })
+            }
+
             LegendRow(items: [(.green.opacity(0.7), "Reference"), (.red.opacity(0.7), "Low/High")])
             Divider()
 
             // Platelet
-            LabeledNumberField(title: "Platelet", value: $plt, precision: 0...0, unitText: "×10³/µL", systemImage: "pills", keyboard: .numberPad)
-            MeasurementBar(title: "Platelet", value: plt, domain: pltDomain, segments: pltSegments,
-                           valueFormatter: { "\(Int($0)) ×10³/µL" })
+            LabeledNumberField(title: "Platelet", value: $plt, precision: 0, unitText: "×10³/µL", systemImage: "pills", keyboard: .numberPad)
+
+            if let measurePlt = plt {
+                MeasurementBar(title: "Platelet", value: measurePlt, domain: pltDomain, segments: pltSegments,
+                               valueFormatter: { "\(Int($0)) ×10³/µL" })
+            }
+
             LegendRow(items: [(.green.opacity(0.7), "Reference"), (.red.opacity(0.7), "Low/High")])
             Divider()
 
             // WBC
-            LabeledNumberField(title: "WBC", value: $wbc, precision: 0...1, unitText: "×10³/µL", systemImage: "face.smiling", keyboard: .decimalPad)
-            MeasurementBar(title: "WBC", value: wbc, domain: wbcDomain, segments: wbcSegments,
-                           valueFormatter: { String(format: "%.1f ×10³/µL", $0) })
+            LabeledNumberField(title: "WBC", value: $wbc, precision: 1, unitText: "×10³/µL", systemImage: "face.smiling", keyboard: .decimalPad)
+            
+            if let measureWbc = wbc {
+                MeasurementBar(title: "WBC", value: measureWbc, domain: wbcDomain, segments: wbcSegments,
+                               valueFormatter: { String(format: "%.1f ×10³/µL", $0) })
+            }
+
             LegendRow(items: [(.green.opacity(0.7), "Reference"), (.red.opacity(0.7), "Low/High")])
         }
     }
@@ -678,11 +695,11 @@ struct ManualDataBloodTest: View {
 struct ManualDataLiverFunction: View {
     @Binding var gender: Gender
     
-    @Binding var ast: Double       // U/L
-    @Binding var alt: Double       // U/L
-    @Binding var ggt: Double       // U/L
-    @Binding var totalProtein: Double // g/dL
-    @Binding var albumin: Double      // g/dL
+    @Binding var ast: Double?       // U/L
+    @Binding var alt: Double?       // U/L
+    @Binding var ggt: Double?       // U/L
+    @Binding var totalProtein: Double? // g/dL
+    @Binding var albumin: Double?      // g/dL
 
     // -------- Domains (x-axis ranges) --------
     private let astDomain: ClosedRange<Double> = 0...200
@@ -750,9 +767,13 @@ struct ManualDataLiverFunction: View {
 
             // AST
             LabeledNumberField(title: "AST (GOT)", value: $ast,
-                               precision: 0...0, unitText: "U/L", systemImage: "waveform.path.ecg", keyboard: .numberPad)
-            MeasurementBar(title: "AST (GOT)", value: ast, domain: astDomain, segments: astSegments,
-                           valueFormatter: { "\(Int($0)) U/L" })
+                               precision: 0, unitText: "U/L", systemImage: "waveform.path.ecg", keyboard: .numberPad)
+            
+            if let vast = ast {
+                MeasurementBar(title: "AST (GOT)", value: vast, domain: astDomain, segments: astSegments,
+                               valueFormatter: { "\(Int($0)) U/L" })
+            }
+
             LegendRow(items: [
                 (.green.opacity(0.7), "Reference"),
                 (.orange.opacity(0.7), "Mild ↑"),
@@ -762,9 +783,13 @@ struct ManualDataLiverFunction: View {
 
             // ALT
             LabeledNumberField(title: "ALT (GPT)", value: $alt,
-                               precision: 0...0, unitText: "U/L", systemImage: "waveform.path.ecg.rectangle", keyboard: .numberPad)
-            MeasurementBar(title: "ALT (GPT)", value: alt, domain: altDomain, segments: altSegments,
-                           valueFormatter: { "\(Int($0)) U/L" })
+                               precision: 0, unitText: "U/L", systemImage: "waveform.path.ecg.rectangle", keyboard: .numberPad)
+
+            if let valt = alt {
+                MeasurementBar(title: "ALT (GPT)", value: valt, domain: altDomain, segments: altSegments,
+                               valueFormatter: { "\(Int($0)) U/L" })
+            }
+
             LegendRow(items: [
                 (.green.opacity(0.7), "Reference"),
                 (.orange.opacity(0.7), "Mild ↑"),
@@ -774,9 +799,13 @@ struct ManualDataLiverFunction: View {
 
             // GGT
             LabeledNumberField(title: "GGT (γ-GT)", value: $ggt,
-                               precision: 0...0, unitText: "U/L", systemImage: "waveform", keyboard: .numberPad)
-            MeasurementBar(title: "GGT (γ-GT)", value: ggt, domain: ggtDomain, segments: ggtSegments,
-                           valueFormatter: { "\(Int($0)) U/L" })
+                               precision: 0, unitText: "U/L", systemImage: "waveform", keyboard: .numberPad)
+
+            if let vggt = ggt {
+                MeasurementBar(title: "GGT (γ-GT)", value: vggt, domain: ggtDomain, segments: ggtSegments,
+                               valueFormatter: { "\(Int($0)) U/L" })
+            }
+
             LegendRow(items: [
                 (.green.opacity(0.7), "Reference"),
                 (.orange.opacity(0.7), "Mild ↑"),
@@ -786,9 +815,13 @@ struct ManualDataLiverFunction: View {
 
             // Total Protein
             LabeledNumberField(title: "Total Protein", value: $totalProtein,
-                               precision: 0...1, unitText: "g/dL", systemImage: "square.grid.2x2", keyboard: .decimalPad)
-            MeasurementBar(title: "Total Protein", value: totalProtein, domain: tpDomain, segments: tpSegments,
-                           valueFormatter: { String(format: "%.1f g/dL", $0) })
+                               precision: 1, unitText: "g/dL", systemImage: "square.grid.2x2", keyboard: .decimalPad)
+
+            if let vtotPro = totalProtein {
+                MeasurementBar(title: "Total Protein", value: vtotPro, domain: tpDomain, segments: tpSegments,
+                               valueFormatter: { String(format: "%.1f g/dL", $0) })
+            }
+
             LegendRow(items: [
                 (.green.opacity(0.7), "Reference"),
                 (.red.opacity(0.7),   "Low"),
@@ -798,9 +831,13 @@ struct ManualDataLiverFunction: View {
 
             // Albumin
             LabeledNumberField(title: "Albumin", value: $albumin,
-                               precision: 0...1, unitText: "g/dL", systemImage: "circle.grid.2x2", keyboard: .decimalPad)
-            MeasurementBar(title: "Albumin", value: albumin, domain: albDomain, segments: albSegments,
-                           valueFormatter: { String(format: "%.1f g/dL", $0) })
+                               precision: 1, unitText: "g/dL", systemImage: "circle.grid.2x2", keyboard: .decimalPad)
+
+            if let valb = albumin {
+                MeasurementBar(title: "Albumin", value: valb, domain: albDomain, segments: albSegments,
+                               valueFormatter: { String(format: "%.1f g/dL", $0) })
+            }
+
             LegendRow(items: [
                 (.green.opacity(0.7), "Reference"),
                 (.red.opacity(0.7),   "Low"),
@@ -816,8 +853,8 @@ struct ManualDataRenalUrate: View {
     @Binding var gender: Gender
 
     // Bind these from the parent so it owns the truth
-    @Binding var creatinine: Double   // mg/dL
-    @Binding var uricAcid: Double     // mg/dL
+    @Binding var creatinine: Double?   // mg/dL
+    @Binding var uricAcid: Double?     // mg/dL
 
     // ---- Domains (x-axis) ----
     private let crDomain: ClosedRange<Double> = 0.3...3.0     // mg/dL
@@ -865,13 +902,15 @@ struct ManualDataRenalUrate: View {
         VStack(alignment: .leading, spacing: 18) {
             // Creatinine
             LabeledNumberField(title: "Creatinine", value: $creatinine,
-                               precision: 0...2, unitText: "mg/dL",
+                               precision: 2, unitText: "mg/dL",
                                systemImage: "square.grid.2x2", keyboard: .decimalPad)
-            MeasurementBar(title: "Creatinine",
-                           value: creatinine,
-                           domain: crDomain,
-                           segments: crSegments,
-                           valueFormatter: { String(format: "%.2f mg/dL", $0) })
+            if let screatinine = creatinine {
+                MeasurementBar(title: "Creatinine",
+                               value: screatinine,
+                               domain: crDomain,
+                               segments: crSegments,
+                               valueFormatter: { String(format: "%.2f mg/dL", $0) })
+            }
             LegendRow(items: [
                 (.green.opacity(0.7), "Reference"),
                 (.orange.opacity(0.8), "High"),
@@ -881,13 +920,15 @@ struct ManualDataRenalUrate: View {
 
             // Uric Acid
             LabeledNumberField(title: "Uric Acid", value: $uricAcid,
-                               precision: 0...1, unitText: "mg/dL",
+                               precision: 1, unitText: "mg/dL",
                                systemImage: "drop.triangle", keyboard: .decimalPad)
-            MeasurementBar(title: "Uric Acid",
-                           value: uricAcid,
-                           domain: uaDomain,
-                           segments: uaSegments,
-                           valueFormatter: { String(format: "%.1f mg/dL", $0) })
+            if let sUA = uricAcid {
+                MeasurementBar(title: "Uric Acid",
+                               value: sUA,
+                               domain: uaDomain,
+                               segments: uaSegments,
+                               valueFormatter: { String(format: "%.1f mg/dL", $0) })
+            }
             LegendRow(items: [
                 (.green.opacity(0.7), "Reference"),
                 (.orange.opacity(0.8), "High"),
@@ -899,8 +940,8 @@ struct ManualDataRenalUrate: View {
 
 struct ManualDataMetabolism: View {
     // Bind from parent so it owns the truth
-    @Binding var fastingGlucoseMgdl: Double   // mg/dL
-    @Binding var hba1cPercent: Double         // %, NGSP
+    @Binding var fastingGlucoseMgdl: Double?   // mg/dL
+    @Binding var hba1cPercent: Double?         // %, NGSP
 
     // ---------- Domains ----------
     private let gluDomain: ClosedRange<Double> = 50...300       // mg/dL
@@ -935,18 +976,21 @@ struct ManualDataMetabolism: View {
             LabeledNumberField(
                 title: "Fasting Glucose",
                 value: $fastingGlucoseMgdl,
-                precision: 0...0,
+                precision: 0,
                 unitText: "mg/dL",
                 systemImage: "drop.fill",
                 keyboard: .numberPad
             )
-            MeasurementBar(
-                title: "Fasting Glucose",
-                value: fastingGlucoseMgdl,
-                domain: gluDomain,
-                segments: gluSegments,
-                valueFormatter: { "\(Int($0)) mg/dL" }
-            )
+            if let sfasGlu = fastingGlucoseMgdl {
+                MeasurementBar(
+                    title: "Fasting Glucose",
+                    value: sfasGlu,
+                    domain: gluDomain,
+                    segments: gluSegments,
+                    valueFormatter: { "\(Int($0)) mg/dL" }
+                )
+            }
+            
             LegendRow(items: [
                 (.cyan.opacity(0.7), "Low"),
                 (.green.opacity(0.7), "Reference"),
@@ -961,17 +1005,20 @@ struct ManualDataMetabolism: View {
             LabeledNumberField(
                 title: "HbA1c (NGSP)",
                 value: $hba1cPercent,
-                precision: 0...1,
+                precision: 1,
                 unitText: "%",
                 keyboard: .decimalPad
             )
-            MeasurementBar(
-                title: "HbA1c (NGSP)",
-                value: hba1cPercent,
-                domain: a1cDomain,
-                segments: a1cSegments,
-                valueFormatter: { String(format: "%.1f %%", $0) }
-            )
+            if let shba = hba1cPercent {
+                MeasurementBar(
+                    title: "HbA1c (NGSP)",
+                    value: shba,
+                    domain: a1cDomain,
+                    segments: a1cSegments,
+                    valueFormatter: { String(format: "%.1f %%", $0) }
+                )
+            }
+            
             LegendRow(items: [
                 (.green.opacity(0.7), "Reference"),
                 (.yellow.opacity(0.8), "Prediabetes"),
@@ -986,10 +1033,10 @@ struct ManualDataLipids: View {
     @Binding var gender: Gender
 
     // Bind values from parent so it owns the truth
-    @Binding var totalCholesterol: Double      // mg/dL
-    @Binding var hdl: Double            // mg/dL
-    @Binding var ldl: Double            // mg/dL
-    @Binding var triglycerides: Double  // mg/dL
+    @Binding var totalCholesterol: Double?      // mg/dL
+    @Binding var hdl: Double?            // mg/dL
+    @Binding var ldl: Double?            // mg/dL
+    @Binding var triglycerides: Double?  // mg/dL
 
     // ---- Domains (x-axis) ----
     private let tcDomain: ClosedRange<Double> = 100...320
@@ -1043,15 +1090,19 @@ struct ManualDataLipids: View {
             // Total Cholesterol
             LabeledNumberField(title: "Total Cholesterol",
                                value: $totalCholesterol,
-                               precision: 0...0,
+                               precision: 0,
                                unitText: "mg/dL",
                                systemImage: "circle.grid.2x2",
                                keyboard: .numberPad)
-            MeasurementBar(title: "Total Cholesterol",
-                           value: totalCholesterol,
-                           domain: tcDomain,
-                           segments: tcSegments,
-                           valueFormatter: { "\(Int($0)) mg/dL" })
+            
+            if let stotChol = totalCholesterol {
+                MeasurementBar(title: "Total Cholesterol",
+                               value: stotChol,
+                               domain: tcDomain,
+                               segments: tcSegments,
+                               valueFormatter: { "\(Int($0)) mg/dL" })
+            }
+            
             LegendRow(items: [
                 (.green.opacity(0.7), "Desirable"),
                 (.yellow.opacity(0.8), "Borderline"),
@@ -1062,15 +1113,19 @@ struct ManualDataLipids: View {
             // HDL
             LabeledNumberField(title: "HDL",
                                value: $hdl,
-                               precision: 0...0,
+                               precision: 0,
                                unitText: "mg/dL",
                                systemImage: "shield.lefthalf.fill",
                                keyboard: .numberPad)
-            MeasurementBar(title: "HDL",
-                           value: hdl,
-                           domain: hdlDomain,
-                           segments: hdlSegments,
-                           valueFormatter: { "\(Int($0)) mg/dL" })
+            
+            if let shdl = hdl {
+                MeasurementBar(title: "HDL",
+                               value: shdl,
+                               domain: hdlDomain,
+                               segments: hdlSegments,
+                               valueFormatter: { "\(Int($0)) mg/dL" })
+            }
+            
             LegendRow(items: [
                 (.red.opacity(0.75), "Low"),
                 (.green.opacity(0.7), "Reference"),
@@ -1081,15 +1136,19 @@ struct ManualDataLipids: View {
             // LDL
             LabeledNumberField(title: "LDL",
                                value: $ldl,
-                               precision: 0...0,
+                               precision: 0,
                                unitText: "mg/dL",
                                systemImage: "triangle.lefthalf.filled",
                                keyboard: .numberPad)
-            MeasurementBar(title: "LDL",
-                           value: ldl,
-                           domain: ldlDomain,
-                           segments: ldlSegments,
-                           valueFormatter: { "\(Int($0)) mg/dL" })
+            
+            if let sldla = ldl {
+                MeasurementBar(title: "LDL",
+                               value: sldla,
+                               domain: ldlDomain,
+                               segments: ldlSegments,
+                               valueFormatter: { "\(Int($0)) mg/dL" })
+            }
+            
             LegendRow(items: [
                 (.green.opacity(0.7), "Optimal"),
                 (.teal.opacity(0.7), "Near optimal"),
@@ -1102,15 +1161,18 @@ struct ManualDataLipids: View {
             // Triglycerides
             LabeledNumberField(title: "Triglycerides",
                                value: $triglycerides,
-                               precision: 0...0,
+                               precision: 0,
                                unitText: "mg/dL",
                                systemImage: "drop.triangle",
                                keyboard: .numberPad)
-            MeasurementBar(title: "Triglycerides",
-                           value: triglycerides,
-                           domain: tgDomain,
-                           segments: tgSegments,
-                           valueFormatter: { "\(Int($0)) mg/dL" })
+            
+            if let strigly = triglycerides {
+                MeasurementBar(title: "Triglycerides",
+                               value: strigly,
+                               domain: tgDomain,
+                               segments: tgSegments,
+                               valueFormatter: { "\(Int($0)) mg/dL" })
+            }
             LegendRow(items: [
                 (.green.opacity(0.7), "Normal"),
                 (.yellow.opacity(0.8), "Borderline"),
@@ -1123,24 +1185,24 @@ struct ManualDataLipids: View {
 
 struct ManualDataEyeInput: View {
     // Acuity
-    @Binding var uncorrectedRight: Double
-    @Binding var uncorrectedLeft:  Double
-    @Binding var correctedRight:   Double
-    @Binding var correctedLeft:    Double
+    @Binding var uncorrectedRight: Double?
+    @Binding var uncorrectedLeft:  Double?
+    @Binding var correctedRight:   Double?
+    @Binding var correctedLeft:    Double?
     // IOP
-    @Binding var iopRight: Double
-    @Binding var iopLeft:  Double
+    @Binding var iopRight: Double?
+    @Binding var iopLeft:  Double?
     
     // Near Vision & Color Vision
-    @Binding var nearBothEyes: Double
-    @Binding var colorPlatesCorrect: Int
-    @Binding var colorPlatesTotal:   Int
+    @Binding var nearBothEyes: Double?
+    @Binding var colorPlatesCorrect: Int?
+    @Binding var colorPlatesTotal:   Int?
     
     // Refraction
-    @Binding var rSphere: Double
-    @Binding var rCylinder: Double
-    @Binding var lSphere: Double
-    @Binding var lCylinder: Double
+    @Binding var rSphere: Double?
+    @Binding var rCylinder: Double?
+    @Binding var lSphere: Double?
+    @Binding var lCylinder: Double?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -1150,12 +1212,12 @@ struct ManualDataEyeInput: View {
             Group {
                 Text("Visual Acuity (JP decimal)").font(.headline)
                 VStack {
-                    LabeledNumberField(title: "Uncorrected R", value: $uncorrectedRight, precision: 0...2, unitText: nil, systemImage: "eye", keyboard: .decimalPad)
-                    LabeledNumberField(title: "Uncorrected L", value: $uncorrectedLeft,  precision: 0...2, unitText: nil, systemImage: "eye", keyboard: .decimalPad)
+                    LabeledNumberField(title: "Uncorrected R", value: $uncorrectedRight, precision: 2, unitText: nil, systemImage: "eye", keyboard: .decimalPad)
+                    LabeledNumberField(title: "Uncorrected L", value: $uncorrectedLeft,  precision: 2, unitText: nil, systemImage: "eye", keyboard: .decimalPad)
                 }
                 VStack {
-                    LabeledNumberField(title: "Corrected R",   value: $correctedRight, precision: 0...2, unitText: nil, systemImage: "eyeglasses", keyboard: .decimalPad)
-                    LabeledNumberField(title: "Corrected L",   value: $correctedLeft,  precision: 0...2, unitText: nil, systemImage: "eyeglasses", keyboard: .decimalPad)
+                    LabeledNumberField(title: "Corrected R",   value: $correctedRight, precision: 2, unitText: nil, systemImage: "eyeglasses", keyboard: .decimalPad)
+                    LabeledNumberField(title: "Corrected L",   value: $correctedLeft,  precision: 2, unitText: nil, systemImage: "eyeglasses", keyboard: .decimalPad)
                 }
             }
             Divider()
@@ -1163,8 +1225,8 @@ struct ManualDataEyeInput: View {
             Group {
                 Text("Intraocular Pressure (mmHg)").font(.headline)
                 VStack {
-                    LabeledNumberField(title: "Right IOP", value: $iopRight, precision: 0...0, unitText: "mmHg", systemImage: "gauge", keyboard: .numberPad)
-                    LabeledNumberField(title: "Left IOP",  value: $iopLeft,  precision: 0...0, unitText: "mmHg", systemImage: "gauge", keyboard: .numberPad)
+                    LabeledNumberField(title: "Right IOP", value: $iopRight, precision: 0, unitText: "mmHg", systemImage: "gauge", keyboard: .numberPad)
+                    LabeledNumberField(title: "Left IOP",  value: $iopLeft,  precision: 0, unitText: "mmHg", systemImage: "gauge", keyboard: .numberPad)
                 }
             }
             Divider()
@@ -1172,7 +1234,7 @@ struct ManualDataEyeInput: View {
             // Near vision & Color vision
             Group {
                 Text("Near Vision & Color Vision").font(.headline)
-                LabeledNumberField(title: "Near Vision (both eyes)", value: $nearBothEyes, precision: 0...2, unitText: nil, systemImage: "book", keyboard: .decimalPad)
+                LabeledNumberField(title: "Near Vision (both eyes)", value: $nearBothEyes, precision: 2, unitText: nil, systemImage: "book", keyboard: .decimalPad)
                 HStack {
                     LabeledNumberField_Int(title: "Plates Correct", value: $colorPlatesCorrect, unitText: nil, systemImage: "circle.grid.3x3", keyboard: .numberPad)
                     LabeledNumberField_Int(title: "Plates Total",   value: $colorPlatesTotal,   unitText: nil, systemImage: "circle.grid.3x3", keyboard: .numberPad)
@@ -1184,38 +1246,49 @@ struct ManualDataEyeInput: View {
             Group {
                 Text("Refraction (Diopters)").font(.headline)
                 VStack {
-                    LabeledNumberField(title: "Right Sphere",   value: $rSphere,   precision: 0...2, unitText: "D", systemImage: "circle.righthalf.filled", keyboard: .decimalPad)
-                    LabeledNumberField(title: "Right Cylinder", value: $rCylinder, precision: 0...2, unitText: "D", systemImage: "circle.righthalf.filled", keyboard: .decimalPad)
+                    LabeledNumberField(title: "Right Sphere",   value: $rSphere,   precision: 2, unitText: "D", systemImage: "circle.righthalf.filled", keyboard: .decimalPad)
+                    LabeledNumberField(title: "Right Cylinder", value: $rCylinder, precision: 2, unitText: "D", systemImage: "circle.righthalf.filled", keyboard: .decimalPad)
                 }
                 VStack {
-                    LabeledNumberField(title: "Left Sphere",    value: $lSphere,   precision: 0...2, unitText: "D", systemImage: "circle.lefthalf.filled", keyboard: .decimalPad)
-                    LabeledNumberField(title: "Left Cylinder",  value: $lCylinder, precision: 0...2, unitText: "D", systemImage: "circle.lefthalf.filled", keyboard: .decimalPad)
+                    LabeledNumberField(title: "Left Sphere",    value: $lSphere,   precision: 2, unitText: "D", systemImage: "circle.lefthalf.filled", keyboard: .decimalPad)
+                    LabeledNumberField(title: "Left Cylinder",  value: $lCylinder, precision: 2, unitText: "D", systemImage: "circle.lefthalf.filled", keyboard: .decimalPad)
                 }
             }
         }
     }
 }
 
-/// small integer field helper mirroring LabeledNumberField
+/// small integer field helper mirroring your LabeledNumberField
 struct LabeledNumberField_Int: View {
     let title: String
-    @Binding var value: Int
+    @Binding var value: Int?
     var unitText: String? = nil
     var systemImage: String? = nil
     var keyboard: UIKeyboardType = .numberPad
 
+    @State private var text: String = ""
+    @FocusState private var isFocused: Bool
+
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
-            if let systemImage {
-                Image(systemName: systemImage)
-            }
+            if let systemImage { Image(systemName: systemImage) }
             Text(title)
-            TextField("", value: $value, format: .number)
+            TextField("", text: $text)
                 .keyboardType(keyboard)
                 .textFieldStyle(.roundedBorder)
-            if let unitText {
-                Text(unitText).foregroundStyle(.secondary)
-            }
+                .focused($isFocused)
+                .onChange(of: text) { _, new in
+                    value = Int(new.trimmingCharacters(in: .whitespaces))
+                }
+                .onChange(of: value) { _, new in
+                    guard !isFocused else { return }
+                    text = new.map(String.init) ?? ""
+                }
+                .onChange(of: isFocused) { _, nowFocused in
+                    guard !nowFocused else { return }
+                    text = value.map(String.init) ?? ""
+                }
+            if let unitText { Text(unitText).foregroundStyle(.secondary) }
         }
     }
 }
@@ -1288,3 +1361,4 @@ struct RangeSeg: Identifiable {
 #Preview {
     ManualDataInputView()
 }
+
