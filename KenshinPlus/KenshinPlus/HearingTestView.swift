@@ -8,8 +8,8 @@
 import SwiftUI
 
 enum Ear: String, CaseIterable {
-    case left = "Left Ear"
-    case right = "Right Ear"
+    case left = "Left Ear (Latest)"
+    case right = "Right Ear (Latest)"
     var title: String { rawValue }
 }
 
@@ -54,6 +54,7 @@ struct HearingTestView: View {
                             band: band,
                             state: state(for: ear, band: band)
                         )
+                        .id("\(ear.rawValue)-\(band.rawValue)") // Unique ID for each combination
                     }
                 }
             }
