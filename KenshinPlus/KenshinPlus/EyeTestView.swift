@@ -57,6 +57,7 @@ struct EyeTestView: View {
                     }
                 }
             }
+            .padding()
         }
     }
     

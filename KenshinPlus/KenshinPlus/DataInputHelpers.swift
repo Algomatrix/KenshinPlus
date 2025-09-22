@@ -50,24 +50,73 @@ struct PutBarChartInContainer<Content: View>: View {
 /// Text + numeric TextField with optional leading/trailing icons/labels.
 struct LabeledNumberField: View {
     let title: String
-    @Binding var value: Double
-    let precision: ClosedRange<Int> // e.g., 0...1
+    @Binding var value: Double?
     var unitText: String? = nil
     var systemImage: String? = nil
     var keyboard: UIKeyboardType = .decimalPad
+    var precision: Int = 2
+
+    @State private var text: String = ""
+    @FocusState private var isFocused: Bool
+
+    init(title: String,
+         value: Binding<Double?>,
+         precision: Int = 2,
+         unitText: String? = nil,
+         systemImage: String? = nil,
+         keyboard: UIKeyboardType = .decimalPad)
+    {
+        self.title = title
+        self._value = value
+        self.unitText = unitText
+        self.systemImage = systemImage
+        self.keyboard = keyboard
+        self.precision = precision
+        // only prefill once
+        self._text = State(initialValue: value.wrappedValue.map { String($0) } ?? "")
+    }
 
     var body: some View {
         HStack(spacing: 8) {
             if let systemImage { Image(systemName: systemImage) }
             Text(title)
-                .scaledToFill()
-            TextField(title,
-                      value: $value,
-                      format: .number.precision(.fractionLength(precision)))
-                .textFieldStyle(.roundedBorder)
+            Spacer()
+            TextField("", text: $text)
                 .keyboardType(keyboard)
-            if let unitText { Text(unitText) }
+                .textFieldStyle(.roundedBorder)
+                .frame(width: 100, alignment: .trailing)
+                .focused($isFocused)
+                // 1) User typing → just parse, no formatting
+                .onChange(of: text) { _, new in
+                    value = parse(new)
+                }
+                // 2) Model changes from outside → reflect only when not editing
+                .onChange(of: value) { _, new in
+                    guard !isFocused else { return }
+                    text = new.map { String($0) } ?? ""
+                }
+                // 3) When the user finishes editing → format once
+                .onChange(of: isFocused) { _, nowFocused in
+                    guard !nowFocused else { return }
+                    if let v = value {
+                        text = format(v, precision: precision) // e.g. "12.3"
+                    } else {
+                        text = ""
+                    }
+                }
+
+            if let unitText { Text(unitText).foregroundStyle(.secondary) }
         }
+    }
+
+    private func parse(_ s: String) -> Double? {
+        let t = s.replacingOccurrences(of: ",", with: ".")
+                 .trimmingCharacters(in: .whitespacesAndNewlines)
+        return Double(t)
+    }
+
+    private func format(_ v: Double, precision: Int) -> String {
+        String(format: "%.\(precision)f", v)
     }
 }
 
@@ -158,7 +207,7 @@ struct LegendRow: View {
 }
 
 #Preview {
-    LabeledNumberField(title: "Hello", value: .constant(20.0), precision: 0...2, unitText: nil, systemImage: "figure", keyboard: .decimalPad)
+    LabeledNumberField(title: "Hello", value: .constant(20.0), precision: 2, unitText: nil, systemImage: "figure", keyboard: .decimalPad)
     Usual4Reference()
     Usual2Reference()
 }

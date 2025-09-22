@@ -11,8 +11,6 @@ import SwiftData
 struct DashboardView: View {
     @Query(sort: \CheckupRecord.date, order: .reverse)
     private var records: [CheckupRecord]
-    
-    @State private var showManualInputScreen = false
 
     let mockData = MockDataForPreview()
     var body: some View {
@@ -137,18 +135,9 @@ struct DashboardView: View {
             .padding()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showManualInputScreen = true
-                    } label: {
+                    NavigationLink(destination: ManualDataInputView()) {
                         Image(systemName: "plus.circle.fill")
                     }
-                }
-            }
-            .fullScreenCover(isPresented: $showManualInputScreen, onDismiss: {
-                showManualInputScreen = false
-            }) {
-                NavigationStack {
-                    ManualDataInputView()
                 }
             }
         }
@@ -183,8 +172,7 @@ struct DashboardView: View {
     private var latest: CheckupRecord? { records.first } // Because records is reverse sorted
     
     private var latestWeightText: String {
-        guard let r = latest else { return "-" }
-        return String(format: "%.1f kg", r.weightKg)
+        String(format: "%.1f kg", latest?.weightKg ?? 0)
     }
     
     // Latest Fat percent
@@ -195,8 +183,7 @@ struct DashboardView: View {
     
     // Latest Height
     private var latestHeightText: String {
-        guard let r = latest else { return "-" }
-        return String(format: "%.1f cm", r.heightCm)
+        String(format: "%.1f cm", latest?.heightCm ?? 0)
     }
     
     // Latest BMI
@@ -217,8 +204,8 @@ struct CheckupDetailView: View {
                 Text("Male").tag(SDGender.male)
                 Text("Female").tag(SDGender.female)
             }
-            LabeledNumberField(title: "Height", value: $record.heightCm, precision: 0...1, unitText: "cm")
-            LabeledNumberField(title: "Weight", value: $record.weightKg, precision: 0...1, unitText: "kg")
+            LabeledNumberField(title: "Height", value: $record.heightCm, precision: 1, unitText: "cm")
+            LabeledNumberField(title: "Weight", value: $record.weightKg, precision: 1, unitText: "kg")
             Text("BMI: \(String(format: "%.1f", record.bmi))")
         }
         .navigationTitle("Checkup")
