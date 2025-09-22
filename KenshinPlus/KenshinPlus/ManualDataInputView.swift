@@ -17,7 +17,7 @@ struct ManualDataInputView: View {
     @State private var gender: Gender = .Male  // Gender
     
     // Weight Unit
-    @State private var weightKg: Double = 65.0
+    @State private var weightKg: Double? = nil
     @State private var weightUnit: WeightUnit = .Kg
 
     @State private var systolic: Double? = nil
@@ -252,7 +252,7 @@ struct ManualDataBasicInfoArea: View {
     @Binding var unit: LengthUnit
     @Binding var heightCm: Double
     @Binding var gender: Gender
-    @Binding var weightKg: Double
+    @Binding var weightKg: Double?
     @Binding var weightUnit: WeightUnit
     @Binding var fatPercent: Double?
     @Binding var abdominalGirthCm: Double?
@@ -373,7 +373,7 @@ struct ManualDataBasicInfoArea: View {
         Binding<Double?> {
             switch weightUnit {
             case .Kg:     return weightKg
-            case .Pounds: return weightKg * 2.20462
+            case .Pounds: return weightKg.map { $0 * 2.20462 }
             }
         } set: { newValue in
             // if user clears the field, don’t modify the source
@@ -390,8 +390,8 @@ struct ManualDataBasicInfoArea: View {
     
     private var bmi: Double {
         let m = heightCm / 100.0
-        guard m > 0 else { return 0 }
-        return weightKg / (m * m)
+        guard m > 0, let weight = weightKg else { return 0 } // Handle nil weightKg
+        return weight / (m * m)
     }
     
     private var bmiString: String {
@@ -1361,4 +1361,3 @@ struct RangeSeg: Identifiable {
 #Preview {
     ManualDataInputView()
 }
-

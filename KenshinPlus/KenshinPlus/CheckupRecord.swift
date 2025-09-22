@@ -106,7 +106,7 @@ final class CheckupRecord {
         date: Date,
         gender: SDGender,
         heightCm: Double,
-        weightKg: Double,
+        weightKg: Double? = nil,
         fatPercent: Double? = nil,
         waistCm: Double? = nil,
         systolic: Double? = nil,
