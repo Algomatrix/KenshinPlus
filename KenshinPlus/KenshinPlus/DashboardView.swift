@@ -11,8 +11,6 @@ import SwiftData
 struct DashboardView: View {
     @Query(sort: \CheckupRecord.date, order: .reverse)
     private var records: [CheckupRecord]
-    
-    @State private var showManualInputScreen = false
 
     let mockData = MockDataForPreview()
     var body: some View {
@@ -137,18 +135,9 @@ struct DashboardView: View {
             .padding()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showManualInputScreen = true
-                    } label: {
+                    NavigationLink(destination: ManualDataInputView()) {
                         Image(systemName: "plus.circle.fill")
                     }
-                }
-            }
-            .fullScreenCover(isPresented: $showManualInputScreen, onDismiss: {
-                showManualInputScreen = false
-            }) {
-                NavigationStack {
-                    ManualDataInputView()
                 }
             }
         }

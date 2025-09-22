@@ -164,16 +164,6 @@ struct ManualDataInputView: View {
                         right4k: $hearingR4k
                     )
                 }
-
-                Button {
-                    saveRecord()
-                    dismiss()
-                } label: {
-                    Label("Save Checkup Data", systemImage: "tray.and.arrow.down.fill")
-                }
-                .buttonStyle(.borderedProminent)
-                .padding(.top, 12)
-
             }
             .padding()
         }
@@ -182,11 +172,15 @@ struct ManualDataInputView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
+                    saveRecord()
                     dismiss()
                 } label: {
-                    Image(systemName: "xmark.circle")
-                        .foregroundStyle(.red)
+                    HStack {
+                        Image(systemName: "tray.and.arrow.down.fill")
+                        Text("Save")
+                    }
                 }
+                .buttonStyle(.borderedProminent)
             }
         }
     }
@@ -1319,15 +1313,19 @@ private struct HearingRow: View {
             Text(title).font(.headline)
             HStack {
                 Picker("Left", selection: $left) {
-                    ForEach(TestResultState.allCases, id: \.self) { s in
-                        Text(s.title).tag(s)
+                    ForEach(TestResultState.allCases, id: \.self) { state in
+                        Text(state.title)
+                            .foregroundColor(left == state ? .blue : .primary) // Change color based on selection
+                            .tag(state)
                     }
                 }
                 .pickerStyle(.segmented)
 
                 Picker("Right", selection: $right) {
-                    ForEach(TestResultState.allCases, id: \.self) { s in
-                        Text(s.title).tag(s)
+                    ForEach(TestResultState.allCases, id: \.self) { state in
+                        Text(state.title)
+                            .foregroundColor(right == state ? .blue : .primary) // Change color based on selection
+                            .tag(state)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -1360,4 +1358,24 @@ struct RangeSeg: Identifiable {
 
 #Preview {
     ManualDataInputView()
+    
+    // For save data test
+    /*
+     NavigationStack {
+         VStack {
+             Text("Preview of Dashboard View")
+                 .font(.largeTitle)
+                 .padding()
+
+             // Here you can add your toolbar
+             .toolbar {
+                 ToolbarItem(placement: .topBarTrailing) {
+                     NavigationLink(destination: ManualDataInputView()) {
+                         Image(systemName: "plus.circle.fill")
+                     }
+                 }
+             }
+         }
+     }
+     */
 }
