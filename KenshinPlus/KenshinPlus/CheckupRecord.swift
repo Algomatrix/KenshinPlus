@@ -65,9 +65,12 @@ final class CheckupRecord {
 
     // Derived
     var bmi: Double {
-        guard heightCm! > 0 else { return 0 }
-        let m = heightCm! / 100.0
-        return weightKg! / (m * m)
+        guard let height = heightCm, height > 0,
+              let weight = weightKg else {
+            return 0
+        }
+        let m = height / 100.0
+        return weight / (m * m)
     }
 
     // EYE — acuity (names matched to your extension)

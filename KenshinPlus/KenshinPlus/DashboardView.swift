@@ -172,8 +172,7 @@ struct DashboardView: View {
     private var latest: CheckupRecord? { records.first } // Because records is reverse sorted
     
     private var latestWeightText: String {
-        guard let r = latest else { return "-" }
-        return String(format: "%.1f kg", r.weightKg!)
+        String(format: "%.1f kg", latest?.weightKg ?? 0)
     }
     
     // Latest Fat percent
@@ -184,8 +183,7 @@ struct DashboardView: View {
     
     // Latest Height
     private var latestHeightText: String {
-        guard let r = latest else { return "-" }
-        return String(format: "%.1f cm", r.heightCm!)
+        String(format: "%.1f cm", latest?.heightCm ?? 0)
     }
     
     // Latest BMI
