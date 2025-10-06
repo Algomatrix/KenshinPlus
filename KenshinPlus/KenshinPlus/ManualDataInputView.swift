@@ -135,35 +135,35 @@ struct ManualDataInputView: View {
                     ManualDataLipids(gender: $gender, totalCholesterol: $totalCholesterol, hdl: $hdl, ldl: $ldl, triglycerides: $triglycerides)
                 }
                 
-                Text("Oprional Data")
-                    .foregroundStyle(.secondary)
+//                Text("Oprional Data")
+//                    .foregroundStyle(.secondary)
                 
-                PutBarChartInContainer(title: "Eye Test Data") {
-                    ManualDataEyeInput(
-                        uncorrectedRight: $uncorrectedRight,
-                        uncorrectedLeft:  $uncorrectedLeft,
-                        correctedRight:   $correctedRight,
-                        correctedLeft:    $correctedLeft,
-                        iopRight:         $iopRight,
-                        iopLeft:          $iopLeft,
-                        nearBothEyes:     $nearBothEyes,
-                        colorPlatesCorrect: $colorPlatesCorrect,
-                        colorPlatesTotal:   $colorPlatesTotal,
-                        rSphere: $rSphere,
-                        rCylinder: $rCylinder,
-                        lSphere: $lSphere,
-                        lCylinder: $lCylinder
-                    )
-                }
+//                PutBarChartInContainer(title: "Eye Test Data") {
+//                    ManualDataEyeInput(
+//                        uncorrectedRight: $uncorrectedRight,
+//                        uncorrectedLeft:  $uncorrectedLeft,
+//                        correctedRight:   $correctedRight,
+//                        correctedLeft:    $correctedLeft,
+//                        iopRight:         $iopRight,
+//                        iopLeft:          $iopLeft,
+//                        nearBothEyes:     $nearBothEyes,
+//                        colorPlatesCorrect: $colorPlatesCorrect,
+//                        colorPlatesTotal:   $colorPlatesTotal,
+//                        rSphere: $rSphere,
+//                        rCylinder: $rCylinder,
+//                        lSphere: $lSphere,
+//                        lCylinder: $lCylinder
+//                    )
+//                }
 
-                PutBarChartInContainer(title: "Hearing Test Data") {
-                    ManualDataHearingInput(
-                        left1k:  $hearingL1k,
-                        right1k: $hearingR1k,
-                        left4k:  $hearingL4k,
-                        right4k: $hearingR4k
-                    )
-                }
+//                PutBarChartInContainer(title: "Hearing Test Data") {
+//                    ManualDataHearingInput(
+//                        left1k:  $hearingL1k,
+//                        right1k: $hearingR1k,
+//                        left4k:  $hearingL4k,
+//                        right4k: $hearingR4k
+//                    )
+//                }
             }
             .padding()
         }
