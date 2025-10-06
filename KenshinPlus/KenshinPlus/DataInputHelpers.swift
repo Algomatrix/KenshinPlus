@@ -55,6 +55,7 @@ struct LabeledNumberField: View {
     var systemImage: String? = nil
     var keyboard: UIKeyboardType = .decimalPad
     var precision: Int = 2
+    var color: Color? = nil
 
     @State private var text: String = ""
     @FocusState private var isFocused: Bool
@@ -64,7 +65,8 @@ struct LabeledNumberField: View {
          precision: Int = 2,
          unitText: String? = nil,
          systemImage: String? = nil,
-         keyboard: UIKeyboardType = .decimalPad)
+         keyboard: UIKeyboardType = .decimalPad,
+         color: Color? = nil)
     {
         self.title = title
         self._value = value
@@ -74,11 +76,12 @@ struct LabeledNumberField: View {
         self.precision = precision
         // only prefill once
         self._text = State(initialValue: value.wrappedValue.map { String($0) } ?? "")
+        self.color = color
     }
 
     var body: some View {
         HStack(spacing: 8) {
-            if let systemImage { Image(systemName: systemImage) }
+            if let systemImage { Image(systemName: systemImage).foregroundStyle(color ?? .clear) }
             Text(title)
             Spacer()
             TextField("", text: $text)
@@ -207,7 +210,7 @@ struct LegendRow: View {
 }
 
 #Preview {
-    LabeledNumberField(title: "Hello", value: .constant(20.0), precision: 2, unitText: nil, systemImage: "figure", keyboard: .decimalPad)
+    LabeledNumberField(title: "Hello", value: .constant(20.0), precision: 2, unitText: nil, systemImage: "figure", keyboard: .decimalPad, color: .blue)
     Usual4Reference()
     Usual2Reference()
 }

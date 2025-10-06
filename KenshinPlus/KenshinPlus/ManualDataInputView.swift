@@ -168,7 +168,7 @@ struct ManualDataInputView: View {
             .padding()
         }
         .navigationTitle("Add Checkup Data")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.automatic)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {

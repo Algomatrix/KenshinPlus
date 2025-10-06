@@ -193,27 +193,6 @@ struct DashboardView: View {
     }
 }
 
-struct CheckupDetailView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Bindable var record: CheckupRecord   // SwiftData magic
-
-    var body: some View {
-        Form {
-            DatePicker("Date", selection: $record.date, displayedComponents: .date)
-            Picker("Gender", selection: $record.gender) {
-                Text("Male").tag(SDGender.male)
-                Text("Female").tag(SDGender.female)
-            }
-            LabeledNumberField(title: "Height", value: $record.heightCm, precision: 1, unitText: "cm")
-            LabeledNumberField(title: "Weight", value: $record.weightKg, precision: 1, unitText: "kg")
-            Text("BMI: \(String(format: "%.1f", record.bmi))")
-        }
-        .navigationTitle("Checkup")
-        .toolbar {
-            Button("Save") { try? modelContext.save() }
-        }
-    }
-}
 
 #Preview {
     DashboardView()
