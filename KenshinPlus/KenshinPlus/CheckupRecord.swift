@@ -65,12 +65,9 @@ final class CheckupRecord {
 
     // Derived
     var bmi: Double {
-        guard let height = heightCm, height > 0,
-              let weight = weightKg else {
-            return 0
-        }
-        let m = height / 100.0
-        return weight / (m * m)
+        guard heightCm! > 0 else { return 0 }
+        let m = heightCm! / 100.0
+        return (weightKg ?? 0) / (m * m)
     }
 
     // EYE — acuity (names matched to your extension)
@@ -159,7 +156,7 @@ final class CheckupRecord {
         self.date = date
         self.gender = gender
         self.heightCm = heightCm
-        self.weightKg = weightKg
+        self.weightKg = weightKg ?? 0
         self.fatPercent = fatPercent
         self.waistCm = waistCm
         self.systolic = systolic
@@ -203,5 +200,62 @@ final class CheckupRecord {
         self.hearingRight1kHz = hearingRight1kHz
         self.hearingLeft4kHz  = hearingLeft4kHz
         self.hearingRight4kHz = hearingRight4kHz
+    }
+}
+
+// Keep only what you need to restore; include the ID to keep continuity
+struct CheckupRecordSnapshot {
+    let record: CheckupRecord
+
+    init(_ rec: CheckupRecord) {
+        self.record = rec
+    }
+
+    func restoreRecord() -> CheckupRecord {
+        // Recreate with the same id & fields so charts/history look identical
+        let r = CheckupRecord(
+            id: record.id,
+            createdAt: record.createdAt,
+            date: record.date,
+            gender: record.gender,
+            heightCm: record.heightCm!,
+            weightKg: record.weightKg,
+            // …copy all optionals…
+            fatPercent: record.fatPercent,
+            waistCm: record.waistCm,
+            systolic: record.systolic,
+            diastolic: record.diastolic,
+            rbcMillionPeruL: record.rbcMillionPeruL,
+            hgbPerdL: record.hgbPerdL,
+            hctPercent: record.hctPercent,
+            pltThousandPeruL: record.pltThousandPeruL,
+            wbcThousandPeruL: record.wbcThousandPeruL,
+            ast: record.ast, alt: record.alt, ggt: record.ggt,
+            totalProtein: record.totalProtein, albumin: record.albumin,
+            creatinine: record.creatinine, uricAcid: record.uricAcid,
+            fastingGlucoseMgdl: record.fastingGlucoseMgdl,
+            hba1cNgspPercent: record.hba1cNgspPercent,
+            totalChol: record.totalChol, hdl: record.hdl,
+            ldl: record.ldl, triglycerides: record.triglycerides,
+            lengthUnit: record.lengthUnit, weightUnit: record.weightUnit,
+            // Eye & Hearing…
+            uncorrectedAcuityRight: record.uncorrectedAcuityRight,
+            uncorrectedAcuityLeft: record.uncorrectedAcuityLeft,
+            correctedAcuityRight: record.correctedAcuityRight,
+            correctedAcuityLeft: record.correctedAcuityLeft,
+            iopRight: record.iopRight, iopLeft: record.iopLeft,
+            nearAcuityBoth: record.nearAcuityBoth,
+            colorPlatesCorrect: record.colorPlatesCorrect,
+            colorPlatesTotal: record.colorPlatesTotal,
+            refractionSphereRight: record.refractionSphereRight,
+            refractionCylinderRight: record.refractionCylinderRight,
+            refractionSphereLeft: record.refractionSphereLeft,
+            refractionCylinderLeft: record.refractionCylinderLeft,
+            hearingLeft1kHz: record.hearingLeft1kHz,
+            hearingRight1kHz: record.hearingRight1kHz,
+            hearingLeft4kHz: record.hearingLeft4kHz,
+            hearingRight4kHz: record.hearingRight4kHz
+        )
+        return r
     }
 }

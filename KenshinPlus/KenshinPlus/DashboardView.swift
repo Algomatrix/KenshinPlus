@@ -9,8 +9,14 @@ import SwiftUI
 import SwiftData
 
 struct DashboardView: View {
+    @Environment(\.modelContext) private var modelContext
     @Query(sort: \CheckupRecord.date, order: .reverse)
     private var records: [CheckupRecord]
+
+    // MARK: - DashboardView state
+    @State private var undoStack: [CheckupRecordSnapshot] = []
+    @State private var undoDeadline: Date? = nil
+    private let undoTick = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
 
     let mockData = MockDataForPreview()
     var body: some View {
@@ -127,8 +133,32 @@ struct DashboardView: View {
                     }
                 }
 
-                PutBarChartInContainer(title: "Checkup History") {
-                    testHistoryListView
+                PutBarChartInContainer(title: "") {
+                    DisclosureGroup {
+                        PutBarChartInContainer(title: "Checkup History") {
+                            if records.isEmpty {
+                                ContentUnavailableView(
+                                    "No records yet",
+                                    systemImage: "tray",
+                                    description: Text("Tap \(Image(systemName: "plus.circle.fill")) to add one from Dashbaord.")
+                                )
+                            } else {
+                                testHistoryListView
+                            }
+                        }
+                    } label: {
+                        Label("History", systemImage: "list.bullet.clipboard")
+                            .padding(EdgeInsets(top: 12, leading: 0, bottom: 12, trailing: 0))
+                        if !undoStack.isEmpty {
+                            Button {
+                                undoDelete()
+                            } label: {
+                                Label("Undo", systemImage: "arrow.uturn.left.circle")
+                                    .tint(.red)
+                            }
+                            .transition(.opacity.combined(with: .move(edge: .leading)))
+                        }
+                    }
                 }
             }
             .navigationTitle("Health Dashboard")
@@ -140,39 +170,87 @@ struct DashboardView: View {
                     }
                 }
             }
-        }
-//                .background(RoundedRectangle(cornerRadius: 12, style: .circular).fill(.tertiary.opacity(0.5)))
-    }
-    
-    var testHistoryListView: some View {
-        List {
-            if records.isEmpty {
-                Text("No records yet. Tap \(Image(systemName: "plus.circle.fill")) to add one.")
-                    .foregroundStyle(.secondary)
-            } else {
-                ForEach(records) { rec in
-                    NavigationLink {
-                        CheckupDetailView(record: rec)
-                    } label: {
-                        VStack(alignment: .leading) {
-                            Text(rec.date.formatted(date: .abbreviated, time: .omitted))
-                                .font(.headline)
-                            Text("BMI \(String(format: "%.1f", rec.bmi)) • \(rec.gender == .male ? "Male" : "Female")")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
+            .onReceive(undoTick) { _ in
+                if let ddl = undoDeadline, Date() >= ddl {
+                    withAnimation {
+                        undoStack.removeAll()
+                        undoDeadline = nil
                     }
                 }
             }
         }
-        .frame(height: !records.isEmpty ? 300 : 120)
+//                .background(RoundedRectangle(cornerRadius: 12, style: .circular).fill(.tertiary.opacity(0.5)))
     }
+
+    private var testHistoryListView: some View {
+        List {
+            ForEach(records) { rec in
+                NavigationLink {
+                    CheckupDetailView(record: rec)
+                } label: {
+                    VStack(alignment: .leading) {
+                        Text(rec.date.formatted(date: .abbreviated, time: .omitted))
+                            .font(.headline)
+                        Text("BMI \(String(format: "%.1f", rec.bmi)) • \(rec.gender == .male ? "Male" : "Female")")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                // Optional: per-row swipe actions (Delete, Info)
+                .swipeActions {
+                    Button(role: .destructive) {
+                        deleteWithUndo(rec)
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
+            }
+            .onDelete { offsets in
+                let toDelete = offsets.map { records[$0] }
+                deleteWithUndo(toDelete)
+            }
+        }
+        .frame(height: !records.isEmpty ? 300 : 120) // Needed if List in a card inside ScrollView
+    }
+
     
+    private func deleteWithUndo(_ recs: [CheckupRecord]) {
+        // 1) snapshot
+        let snaps = recs.map(CheckupRecordSnapshot.init)
+
+        // 2) delete
+        recs.forEach { modelContext.delete($0) }
+        try? modelContext.save()
+
+        // 3) push + reset window
+        undoStack.append(contentsOf: snaps)
+        undoDeadline = Date().addingTimeInterval(5)   // 5s from the last delete
+    }
+
+    private func deleteWithUndo(_ rec: CheckupRecord) {
+        deleteWithUndo([rec])
+    }
+
+    private func undoDelete() {
+        guard let snap = undoStack.popLast() else { return }
+        let restored = snap.restoreRecord()
+        modelContext.insert(restored)
+        try? modelContext.save()
+
+        // keep button visible if there are more items; otherwise close window
+        if undoStack.isEmpty {
+            withAnimation { undoDeadline = nil }
+        } else {
+            undoDeadline = Date().addingTimeInterval(5) // optional: give user more time for next undo
+        }
+    }
+
     // Latest (most recent) record
     private var latest: CheckupRecord? { records.first } // Because records is reverse sorted
     
     private var latestWeightText: String {
-        String(format: "%.1f kg", latest?.weightKg ?? 0)
+        guard let r = latest else { return "-" }
+        return String(format: "%.1f kg", r.weightKg ?? 0)
     }
     
     // Latest Fat percent
@@ -183,7 +261,8 @@ struct DashboardView: View {
     
     // Latest Height
     private var latestHeightText: String {
-        String(format: "%.1f cm", latest?.heightCm ?? 0)
+        guard let r = latest else { return "-" }
+        return String(format: "%.1f cm", r.heightCm!)
     }
     
     // Latest BMI
