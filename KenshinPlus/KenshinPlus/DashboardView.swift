@@ -147,7 +147,7 @@ struct DashboardView: View {
                             }
                         }
                     } label: {
-                        Label("History", systemImage: "list.bullet.clipboard")
+                        Label("History : ^[\(records.count) record](inflect: true)", systemImage: "list.bullet.clipboard")
                             .padding(EdgeInsets(top: 12, leading: 0, bottom: 12, trailing: 0))
                         if !undoStack.isEmpty {
                             Button {
