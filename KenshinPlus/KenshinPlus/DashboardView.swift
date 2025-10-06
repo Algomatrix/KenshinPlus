@@ -109,29 +109,29 @@ struct DashboardView: View {
                 }
                 
                 // Eyesight and Hearing
-                HStack(spacing: 20) {
-                    NavigationLink(
-                        destination: EyeTestView(records: records)
-                    ) {
-                        DataAtGlanceContainerSmall(
-                            title: "Eyesight",
-                            symbol: "eye",
-                            subtitle: "Left and Right",
-                            color: .green
-                        )
-                    }
-                    
-                    NavigationLink(
-                        destination: HearingTestView(records: records)
-                    ) {
-                        DataAtGlanceContainerSmall(
-                            title: "Hearing",
-                            symbol: "ear.badge.waveform",
-                            subtitle: "Left and Right",
-                            color: .green
-                        )
-                    }
-                }
+//                HStack(spacing: 20) {
+//                    NavigationLink(
+//                        destination: EyeTestView(records: records)
+//                    ) {
+//                        DataAtGlanceContainerSmall(
+//                            title: "Eyesight",
+//                            symbol: "eye",
+//                            subtitle: "Left and Right",
+//                            color: .green
+//                        )
+//                    }
+//
+//                    NavigationLink(
+//                        destination: HearingTestView(records: records)
+//                    ) {
+//                        DataAtGlanceContainerSmall(
+//                            title: "Hearing",
+//                            symbol: "ear.badge.waveform",
+//                            subtitle: "Left and Right",
+//                            color: .green
+//                        )
+//                    }
+//                }
 
                 PutBarChartInContainer(title: "") {
                     DisclosureGroup {
@@ -147,7 +147,7 @@ struct DashboardView: View {
                             }
                         }
                     } label: {
-                        Label("History", systemImage: "list.bullet.clipboard")
+                        Label("History : ^[\(records.count) record](inflect: true)", systemImage: "list.bullet.clipboard")
                             .padding(EdgeInsets(top: 12, leading: 0, bottom: 12, trailing: 0))
                         if !undoStack.isEmpty {
                             Button {
@@ -212,7 +212,6 @@ struct DashboardView: View {
         }
         .frame(height: !records.isEmpty ? 300 : 120) // Needed if List in a card inside ScrollView
     }
-
     
     private func deleteWithUndo(_ recs: [CheckupRecord]) {
         // 1) snapshot

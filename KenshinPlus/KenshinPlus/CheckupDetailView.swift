@@ -36,7 +36,7 @@ struct CheckupDetailView: View {
             
             cholesterolDetails // Cholesterol test details
             
-            eyeDetails // Eye test details
+//            eyeDetails // Eye test details
         }
         .formStyle(.automatic)
         .navigationTitle("Checkup")

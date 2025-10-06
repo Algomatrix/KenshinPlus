@@ -52,7 +52,7 @@ struct CholesterolTestView: View {
     var totalCholesterol: some View {
         PutBarChartInContainer(title: "Total Cholesterol") {
             Chart {
-                if let start = startDate, let end = endDate {
+                if let start = startDate, let end = endDate, !totalCholesterolSeries.isEmpty {
                     RectangleMark(
                         xStart: .value("Start", start),
                         xEnd: .value("End", end),
@@ -97,7 +97,7 @@ struct CholesterolTestView: View {
     var LDL: some View {
         PutBarChartInContainer(title: "LDL") {
             Chart {
-                if let start = startDate, let end = endDate {
+                if let start = startDate, let end = endDate, !ldlSeries.isEmpty {
                     RectangleMark(
                         xStart: .value("Start", start),
                         xEnd: .value("End", end),
@@ -144,7 +144,7 @@ struct CholesterolTestView: View {
         PutBarChartInContainer(title: "HDL") {
             Chart {
                 // Reference band for Creatinine (0.6–1.1 mg/dL)
-                if let start = startDate, let end = endDate {
+                if let start = startDate, let end = endDate, !hdlSeries.isEmpty {
                     RectangleMark(
                         xStart: .value("Start", start),
                         xEnd: .value("End", end),
@@ -190,7 +190,7 @@ struct CholesterolTestView: View {
     var triglycerides: some View {
         PutBarChartInContainer(title: "Triglyceride") {
             Chart {
-                if let start = startDate, let end = endDate {
+                if let start = startDate, let end = endDate, !triglyceridesSeries.isEmpty {
                     RectangleMark(
                         xStart: .value("Start", start),
                         xEnd: .value("End", end),
