@@ -30,7 +30,7 @@ struct KidneyTestView: View {
                 PutBarChartInContainer(title: "Uric Acid") {
                     Chart {
                         // Reference band for Uric Acid (3.6–7.0 mg/dL)
-                        if let start = startDate, let end = endDate {
+                        if let start = startDate, let end = endDate, !uricAcid.isEmpty {
                             RectangleMark(
                                 xStart: .value("Start", start),
                                 xEnd: .value("End", end),
@@ -74,7 +74,7 @@ struct KidneyTestView: View {
                 PutBarChartInContainer(title: "Creatinine") {
                     Chart {
                         // Reference band for Creatinine (0.6–1.1 mg/dL)
-                        if let start = startDate, let end = endDate {
+                        if let start = startDate, let end = endDate, !creatinine.isEmpty {
                             RectangleMark(
                                 xStart: .value("Start", start),
                                 xEnd: .value("End", end),
