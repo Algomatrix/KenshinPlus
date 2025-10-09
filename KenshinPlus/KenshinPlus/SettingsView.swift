@@ -7,12 +7,10 @@
 
 import SwiftUI
 import SwiftData
+import CloudKit
 
 struct SettingsView: View {
-    @State private var tab: MainTab = .settings
-    @State private var isiCloudSyncEnabled = false
     @State private var isSectionDisabled = true
-    @StateObject private var auth = AppleAuth()
     @AppStorage("birthDateISO") private var birthDateISO: String = ""
     @State private var dob = DOBState()
     @Query(sort: \CheckupRecord.date, order: .reverse)
@@ -29,18 +27,16 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        TabView(selection: $tab) {
-            VStack{
-                Form {
-                    yourAccount
-
-                    dataManagement
-
-                    privacy
-                    
-                    appInfo
-
-                }
+        VStack{
+            Form {
+                yourAccount
+                
+                dataManagement
+                
+                privacy
+                
+                appInfo
+                
             }
         }
     }
@@ -48,36 +44,6 @@ struct SettingsView: View {
     // MARK: - Your Account
     var yourAccount: some View {
         Section {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(auth.isSignedIn ? auth.account?.displayName ?? "Apple User" : "Account (Guest)")
-                        .font(.headline)
-                    if let email = auth.account?.email { Text(email).foregroundStyle(.secondary).font(.subheadline) }
-                    if !auth.isSignedIn, let err = auth.errorMessage { Text(err).foregroundStyle(.red).font(.footnote) }
-                }
-                Spacer()
-                Image(systemName: auth.isSignedIn ? "person.crop.circle.badge.checkmark" : "person.crop.circle.badge.questionmark.fill")
-                    .imageScale(.large)
-                    .foregroundStyle(auth.isSignedIn ? .green : .secondary)
-            }
-            
-            if !auth.isSignedIn {
-                AppleSignInButtonView(auth: auth)
-                    .padding(.top, 6)
-            } else {
-                HStack {
-                    Button(role: .none) {
-                        auth.refreshCredentialState()
-                    } label: {
-                        Label("Check status", systemImage: "arrow.clockwise")
-                    }
-                    Spacer()
-                    Button(role: .destructive) { auth.signOut() } label: {
-                        Label("Sign out", systemImage: "rectangle.portrait.and.arrow.right")
-                    }
-                }
-            }
-            
             BirthDateRow(dob: $dob)
             
             HStack {
@@ -87,14 +53,9 @@ struct SettingsView: View {
                     .foregroundStyle(record.isEmpty ? .secondary : .primary)
             }
         } header: {
-            Label("Your Account", systemImage: "person.crop.circle")
+            Label("General", systemImage: "person.crop.circle")
         }
         .onAppear {
-            auth.refreshCredentialState()
-            if auth.isSignedIn {
-                isSectionDisabled = false // If no sign in, disable iCloud sync section
-            }
-
             if !birthDateISO.isEmpty { dob.date = birthISO.date(from: birthDateISO) }
         }
         .onChange(of: dob.date) { new, _ in
@@ -105,30 +66,28 @@ struct SettingsView: View {
     // MARK: - Data Management
     var dataManagement: some View {
         Section {
-            Toggle("Sync to iCloud", isOn: $isiCloudSyncEnabled)
-                .foregroundStyle(isSectionDisabled ? .secondary : .primary)
-            if !isiCloudSyncEnabled {
-                Link("Manual Sync to iCloud", destination: URL(string: "https://www.apple.com")!)
-            }
-            Text("Restore from iCloud Backup")
-                .foregroundStyle(isSectionDisabled ? .secondary : .primary)
+            CloudStatusRow()
+            Text("Sync is automatic when iCloud is available on this device. You can toggle the sync in Settings app > Apple Account (Top) > iCloud > Saved to iCloud > KenshinPlus")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
         } header: {
             Label("Data Management", systemImage: "lock.icloud")
         }
-        .disabled(isSectionDisabled)
     }
     
     // MARK: - Privacy
     var privacy: some View {
         Section {
-            Button(role: .destructive) { showClearDialog = true } label: { Text("Clear Local Data") }
+            Button(role: .destructive) { showClearDialog = true } label: { Text("Clear Data") }
                 .confirmationDialog("Delete all local data?", isPresented: $showClearDialog, titleVisibility: .visible) {
                     Button("Delete All Data", role: .destructive) { clearLocalData() }
                     Button("Cancel", role: .cancel) { }
                 } message: {
-                    Text("This removes all checkups, settings, and your signed-in session from this device. If iCloud sync is enabled, data may sync back from the cloud.")
-                }.foregroundStyle(.red)
+                    Text("This removes all checkups and settings from this device. If iCloud sync is enabled, data may sync back from iCloud.")
+                }
+                .foregroundStyle(.red)
                 .disabled(record.isEmpty)
+
             NavigationLink("Privacy Policy", destination: PrivacyPolicyView())
         } header: {
             Text("Privacy")
@@ -144,7 +103,7 @@ struct SettingsView: View {
                 Text("1.1.0")
                     .foregroundStyle(.secondary)
             }
-            NavigationLink("Future Updates", destination: FutureUpdates())
+//            NavigationLink("Future Updates", destination: FutureUpdates())
         } header: {
             Label("App Info", systemImage: "app.badge")
         }
@@ -157,7 +116,6 @@ struct SettingsView: View {
             for item in all { modelContext.delete(item) }
             try modelContext.save()
         } catch {
-            // Optional: show an alert instead of printing
             print("Failed to delete records:", error)
         }
 
@@ -166,13 +124,6 @@ struct SettingsView: View {
             UserDefaults.standard.removePersistentDomain(forName: bundleID)
             UserDefaults.standard.synchronize()
         }
-
-        // 3) Clear any Keychain items you used (e.g., Sign in with Apple session)
-        _ = Keychain.delete("appleAccount.json")
-
-        // 4) Reset in-memory UI state as needed (examples)
-        // auth.signOut()
-        // dob = DOBState()
     }
 }
 
@@ -204,7 +155,7 @@ struct BirthDateRow: View {
             BirthDateEditor(dob: $dob)
         } label: {
             HStack {
-                Text("Birth date")
+                Text("Birth Date")
                 Spacer()
                 Text(dob.summary).foregroundStyle(.secondary)
             }
@@ -236,6 +187,42 @@ struct BirthDateEditor: View {
         }
         .onDisappear {
             dob.date = tempDate
+        }
+    }
+}
+
+struct CloudStatusRow: View {
+    @State private var status: CKAccountStatus = .couldNotDetermine
+
+    var body: some View {
+        HStack {
+            Label("iCloud sync", systemImage: "icloud")
+            Spacer()
+            Text(statusText).foregroundStyle(statusColor)
+        }
+        .onAppear { refresh() }
+    }
+
+    private func refresh() {
+        CKContainer.default().accountStatus { s, _ in
+            DispatchQueue.main.async { status = s }
+        }
+    }
+
+    private var statusText: String {
+        switch status {
+        case .available: return "Available (sync active)"
+        case .noAccount: return "Signed out"
+        case .restricted: return "Restricted"
+        case .temporarilyUnavailable: return "Temporarily unavailable"
+        default: return "Checking…"
+        }
+    }
+    private var statusColor: Color {
+        switch status {
+        case .available: return .green
+        case .noAccount, .restricted, .temporarilyUnavailable: return .orange
+        default: return .secondary
         }
     }
 }
