@@ -1001,6 +1001,7 @@ struct ManualDataMetabolism: View {
                 value: $hba1cPercent,
                 precision: 1,
                 unitText: "%",
+                systemImage: "flame.fill",
                 keyboard: .decimalPad
             )
             if let shba = hba1cPercent {
