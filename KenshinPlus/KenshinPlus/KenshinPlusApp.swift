@@ -23,9 +23,15 @@ extension KenshinPlusApp {
         let schema = Schema([CheckupRecord.self])
         
         // Use the user's private iCloud database for sync
-        let config = ModelConfiguration(schema: schema, cloudKitDatabase: .private("iCloud.com.Shubham.KenshinPlus"))
+        let cloud = ModelConfiguration(schema: schema, cloudKitDatabase: .private("iCloud.com.Shubham.KenshinPlus"))
         
         // For now we only use the CloudKit-mirrored config
-        return try! ModelContainer(for: schema, configurations: [config])
+        do {
+            return try ModelContainer(for: schema, configurations: [cloud])
+        } catch {
+            // Log error then fall back to local persistent store
+            assertionFailure("Cloud sync disable due to error: \(error)")
+            return try! ModelContainer(for: schema) // Local disk store, non-iCloud
+        }
     }()
 }

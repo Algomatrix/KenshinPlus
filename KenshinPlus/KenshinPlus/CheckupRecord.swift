@@ -16,12 +16,12 @@ enum EyeSide: String, CaseIterable { case right = "Right", left = "Left" }
 @Model
 final class CheckupRecord {
     // Identity/meta
-    @Attribute(.unique) var id: UUID
-    var createdAt: Date
-    var date: Date
+    var id: UUID = UUID()
+    var createdAt: Date = Date.now
+    var date: Date = Date.now
 
     // Anthropometrics
-    var gender: SDGender
+    var gender: SDGender = SDGender.male
     var heightCm: Double?
     var weightKg: Double?
     var fatPercent: Double?
@@ -60,8 +60,8 @@ final class CheckupRecord {
     var triglycerides: Double?
 
     // UI prefs
-    var lengthUnit: SDLengthUnit
-    var weightUnit: SDWeightUnit
+    var lengthUnit: SDLengthUnit = SDLengthUnit.cm
+    var weightUnit: SDWeightUnit = SDWeightUnit.kg
 
     // Derived
     var bmi: Double {
@@ -117,10 +117,10 @@ final class CheckupRecord {
     // MARK: Init
     init(
         id: UUID = UUID(),
-        createdAt: Date = .init(),
-        date: Date,
-        gender: SDGender,
-        heightCm: Double,
+        createdAt: Date = .now,
+        date: Date = .now,
+        gender: SDGender = .male,
+        heightCm: Double? = nil,
         weightKg: Double? = nil,
         fatPercent: Double? = nil,
         waistCm: Double? = nil,
@@ -233,7 +233,7 @@ struct CheckupRecordSnapshot {
             createdAt: record.createdAt,
             date: record.date,
             gender: record.gender,
-            heightCm: record.heightCm!,
+            heightCm: record.heightCm,
             weightKg: record.weightKg,
             // …copy all optionals…
             fatPercent: record.fatPercent,
