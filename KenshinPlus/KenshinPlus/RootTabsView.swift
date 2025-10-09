@@ -20,15 +20,15 @@ struct RootTabsView: View {
             NavigationStack {
                 DashboardView()
             }
-            .tabItem { Label("Dashboard", systemImage: "speedometer") }
+            .tabItem { Label("Health Dashboard", systemImage: "speedometer") }
             .tag(MainTab.dashboard)
 
-//            NavigationStack {
-//                SettingsView() // make a simple placeholder if you don't have one yet
-//                    .navigationTitle("Settings")
-//            }
-//            .tabItem { Label("Settings", systemImage: "gear") }
-//            .tag(MainTab.settings)
+            NavigationStack {
+                SettingsView()
+                    .navigationTitle("Settings")
+            }
+            .tabItem { Label("Settings", systemImage: "gear") }
+            .tag(MainTab.settings)
         }
     }
 }
