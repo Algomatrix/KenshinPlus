@@ -82,7 +82,7 @@ struct LabeledNumberField: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            if let systemImage { Image(systemName: systemImage).foregroundStyle(color ?? .clear) }
+            if let systemImage { Image(systemName: systemImage).foregroundStyle(color ?? .primary) }
             Text(title)
             Spacer()
             TextField("", text: $text)
