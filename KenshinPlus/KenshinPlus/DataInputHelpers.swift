@@ -74,9 +74,10 @@ struct LabeledNumberField: View {
         self.systemImage = systemImage
         self.keyboard = keyboard
         self.precision = precision
-        // only prefill once
-        self._text = State(initialValue: value.wrappedValue.map { String($0) } ?? "")
         self.color = color
+        // Prefill ONCE, but formatted (not raw Double)
+        let v = value.wrappedValue
+        self._text = State(initialValue: v.map { Self.format($0, precision: precision) } ?? "")
     }
 
     var body: some View {
@@ -89,20 +90,20 @@ struct LabeledNumberField: View {
                 .textFieldStyle(.roundedBorder)
                 .frame(width: 100, alignment: .trailing)
                 .focused($isFocused)
-                // 1) User typing → just parse, no formatting
+                // 1) User typing → parse only (don’t over-format while editing)
                 .onChange(of: text) { _, new in
                     value = parse(new)
                 }
-                // 2) Model changes from outside → reflect only when not editing
+                // 2) Model changes (e.g., unit switch) → if not editing, show formatted
                 .onChange(of: value) { _, new in
                     guard !isFocused else { return }
-                    text = new.map { String($0) } ?? ""
+                    text = new.map { Self.format($0, precision: precision) } ?? ""
                 }
-                // 3) When the user finishes editing → format once
+                // 3) Editing ended → format once with requested precision
                 .onChange(of: isFocused) { _, nowFocused in
                     guard !nowFocused else { return }
                     if let v = value {
-                        text = format(v, precision: precision) // e.g. "12.3"
+                        text = Self.format(v, precision: precision)
                     } else {
                         text = ""
                     }
@@ -112,14 +113,30 @@ struct LabeledNumberField: View {
         }
     }
 
+    // Locale-aware parse using NumberFormatter (handles "," vs ".")
     private func parse(_ s: String) -> Double? {
-        let t = s.replacingOccurrences(of: ",", with: ".")
-                 .trimmingCharacters(in: .whitespacesAndNewlines)
-        return Double(t)
+        let nf = Self.makeFormatter(precision: precision)
+        // Allow both "," and "." while typing by normalizing only if needed
+        if let n = nf.number(from: s) { return n.doubleValue }
+        // Fallback: replace comma with dot for safety
+        return Double(s.replacingOccurrences(of: ",", with: ".")
+                        .trimmingCharacters(in: .whitespacesAndNewlines))
     }
 
-    private func format(_ v: Double, precision: Int) -> String {
-        String(format: "%.\(precision)f", v)
+    // MARK: - Formatting helpers
+    private static func makeFormatter(precision: Int) -> NumberFormatter {
+        let nf = NumberFormatter()
+        nf.locale = .current
+        nf.numberStyle = .decimal
+        nf.usesGroupingSeparator = false
+        nf.minimumFractionDigits = precision
+        nf.maximumFractionDigits = precision
+        return nf
+    }
+
+    private static func format(_ v: Double, precision: Int) -> String {
+        let nf = makeFormatter(precision: precision)
+        return nf.string(from: NSNumber(value: v)) ?? String(format: "%.\(precision)f", v)
     }
 }
 
