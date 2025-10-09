@@ -59,11 +59,11 @@ struct CheckupDetailView: View {
     var bloodDetails: some View {
         // DisclosureGroup for Blood test details
         DisclosureGroup {
-            LabeledNumberField(title: "RBC", value: $record.rbcMillionPeruL, precision: 1, unitText: "x10^6/µL")
-            LabeledNumberField(title: "WBC", value: $record.wbcThousandPeruL, precision: 1, unitText: "x10^3/µL")
+            LabeledNumberField(title: "RBC", value: $record.rbcMillionPeruL, precision: 1, unitText: "M/µL")
             LabeledNumberField(title: "Hemoglobin", value: $record.hgbPerdL, precision: 1, unitText: "g/dL")
             LabeledNumberField(title: "Hematocrit", value: $record.hctPercent, precision: 1, unitText: "%")
-            LabeledNumberField(title: "Platelet", value: $record.pltThousandPeruL, precision: 1, unitText: "x10^3/µL")
+            LabeledNumberField(title: "Platelet", value: $record.pltThousandPeruL, precision: 1, unitText: "K/µL")
+            LabeledNumberField(title: "WBC", value: $record.wbcThousandPeruL, precision: 1, unitText: "K/µL")
         } label: {
             Label("Blood Test", systemImage: "syringe.fill")
         }

@@ -632,10 +632,10 @@ struct ManualDataBloodTest: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             // RBC
-            LabeledNumberField(title: "RBC", value: $rbc, precision: 2, unitText: "×10⁶/µL", systemImage: "drop.fill", keyboard: .decimalPad)
+            LabeledNumberField(title: "RBC", value: $rbc, precision: 2, unitText: "M/µL", systemImage: "drop.fill", keyboard: .decimalPad)
 
             if let measureRbc = rbc {
-                MeasurementBar(title: "RBC", value: measureRbc, domain: rbcDomain, segments: rbcSegments, valueFormatter: { String(format: "%.2f ×10⁶/µL", $0) })
+                MeasurementBar(title: "RBC", value: measureRbc, domain: rbcDomain, segments: rbcSegments, valueFormatter: { String(format: "%.2f M/µL", $0) })
             }
 
             LegendRow(items: [(.green.opacity(0.7), "Reference"), (.red.opacity(0.7), "Low/High")])
@@ -663,22 +663,22 @@ struct ManualDataBloodTest: View {
             Divider()
 
             // Platelet
-            LabeledNumberField(title: "Platelet", value: $plt, precision: 0, unitText: "×10³/µL", systemImage: "pills", keyboard: .numberPad)
+            LabeledNumberField(title: "Platelet", value: $plt, precision: 0, unitText: "K/µL", systemImage: "pills", keyboard: .numberPad)
 
             if let measurePlt = plt {
                 MeasurementBar(title: "Platelet", value: measurePlt, domain: pltDomain, segments: pltSegments,
-                               valueFormatter: { "\(Int($0)) ×10³/µL" })
+                               valueFormatter: { "\(Int($0)) K/µL" })
             }
 
             LegendRow(items: [(.green.opacity(0.7), "Reference"), (.red.opacity(0.7), "Low/High")])
             Divider()
 
             // WBC
-            LabeledNumberField(title: "WBC", value: $wbc, precision: 1, unitText: "×10³/µL", systemImage: "face.smiling", keyboard: .decimalPad)
+            LabeledNumberField(title: "WBC", value: $wbc, precision: 1, unitText: "K/µL", systemImage: "face.smiling", keyboard: .decimalPad)
             
             if let measureWbc = wbc {
                 MeasurementBar(title: "WBC", value: measureWbc, domain: wbcDomain, segments: wbcSegments,
-                               valueFormatter: { String(format: "%.1f ×10³/µL", $0) })
+                               valueFormatter: { String(format: "%.1f K/µL", $0) })
             }
 
             LegendRow(items: [(.green.opacity(0.7), "Reference"), (.red.opacity(0.7), "Low/High")])
