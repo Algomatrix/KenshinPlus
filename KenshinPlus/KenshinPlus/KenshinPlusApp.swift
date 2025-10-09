@@ -10,20 +10,28 @@ import SwiftData
 
 @main
 struct KenshinPlusApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([CheckupRecord.self])
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-        do {
-            return try ModelContainer(for: schema, configurations: [config])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-
     var body: some Scene {
         WindowGroup {
-            DashboardView()
+            RootTabsView()
         }
-        .modelContainer(sharedModelContainer)
+        .modelContainer(Self.sharedContainer)
     }
+}
+
+extension KenshinPlusApp {
+    static let sharedContainer: ModelContainer = {
+        let schema = Schema([CheckupRecord.self])
+        
+        // Use the user's private iCloud database for sync
+        let cloud = ModelConfiguration(schema: schema, cloudKitDatabase: .private("iCloud.com.Shubham.KenshinPlus"))
+        
+        // For now we only use the CloudKit-mirrored config
+        do {
+            return try ModelContainer(for: schema, configurations: [cloud])
+        } catch {
+            // Log error then fall back to local persistent store
+            assertionFailure("Cloud sync disable due to error: \(error)")
+            return try! ModelContainer(for: schema) // Local disk store, non-iCloud
+        }
+    }()
 }
