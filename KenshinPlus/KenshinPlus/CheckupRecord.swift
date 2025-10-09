@@ -65,9 +65,24 @@ final class CheckupRecord {
 
     // Derived
     var bmi: Double {
-        guard heightCm! > 0 else { return 0 }
-        let m = heightCm! / 100.0
-        return (weightKg ?? 0) / (m * m)
+        guard let h = heightCm, h > 0, let w = weightKg, w > 0 else { return 0 }
+        let m = h / 100.0
+        return w / (m * m)
+    }
+
+    // MARK: - Weight
+    public func kgToLb(_ kg: Double) -> Double { kg * 2.2046226218 }
+    public func lbToKg(_ lb: Double) -> Double { lb / 2.2046226218 }
+
+    // MARK: - Height
+    public func cmToFeetInches(_ cm: Double) -> (feet: Int, inches: Int) {
+        let totalInches = cm / 2.54
+        let f = Int(totalInches / 12.0)
+        let i = Int(round(totalInches - Double(f) * 12.0))
+        return (f, min(i, 11))
+    }
+    public func feetInchesToCm(feet: Int, inches: Int) -> Double {
+        Double(feet) * 30.48 + Double(inches) * 2.54
     }
 
     // EYE — acuity (names matched to your extension)
@@ -156,7 +171,7 @@ final class CheckupRecord {
         self.date = date
         self.gender = gender
         self.heightCm = heightCm
-        self.weightKg = weightKg ?? 0
+        self.weightKg = weightKg
         self.fatPercent = fatPercent
         self.waistCm = waistCm
         self.systolic = systolic

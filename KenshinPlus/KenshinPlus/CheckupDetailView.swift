@@ -11,15 +11,102 @@ struct CheckupDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Bindable var record: CheckupRecord   // SwiftData magic
 
+    // For feet/inches editor we keep small local state but write back to cm
+    @State private var ft: Int = 5
+    @State private var inch: Int = 7
+    @State private var kg: Int = 5
+    @State private var lb: Int = 14
+
+    // Weight binding that converts to/from kg based on record.weightUnit
+    // TODO: Make weightDisplayBinding common utility (used at two places)
+    private var weightDisplayBinding: Binding<Double?> {
+        Binding<Double?> {
+            guard let kg = record.weightKg else { return nil }
+            switch record.weightUnit {
+            case .kg:     return kg
+            case .pounds: return record.kgToLb(kg)
+            }
+        } set: { newValue in
+            guard let v = newValue else { record.weightKg = nil; return }
+            switch record.weightUnit {
+            case .kg:     record.weightKg = v
+            case .pounds: record.weightKg = record.lbToKg(v)
+            }
+        }
+    }
+
     var body: some View {
         Form {
             DatePicker("Date", selection: $record.date, displayedComponents: .date)
+
             Picker("Gender", selection: $record.gender) {
                 Text("Male").tag(SDGender.male)
                 Text("Female").tag(SDGender.female)
             }
-            LabeledNumberField(title: "Height", value: $record.heightCm, precision: 1, unitText: "cm", systemImage: "ruler", color: .blue)
-            LabeledNumberField(title: "Weight", value: $record.weightKg, precision: 1, unitText: "kg", systemImage: "figure", color: .blue)
+
+            // ---- Height (unit-aware) ----
+            Picker("Height Unit", selection: $record.lengthUnit) {
+                Text("cm").tag(SDLengthUnit.cm)
+                Text("ft/in").tag(SDLengthUnit.ft)
+            }
+            .pickerStyle(.segmented)
+            .onChange(of: record.lengthUnit) { _, newUnit in
+                if newUnit == .ft, let h = record.heightCm {
+                    let p = record.cmToFeetInches(h)
+                    ft = p.feet; inch = p.inches
+                }
+            }
+
+            if record.lengthUnit == .cm {
+                LabeledNumberField(
+                    title: "Height",
+                    value: $record.heightCm,
+                    precision: 1,
+                    unitText: "cm",
+                    systemImage: "ruler",
+                    color: .blue
+                )
+            } else {
+                HStack {
+                    Label("Height", systemImage: "ruler")
+                    Spacer()
+                    Picker("ft", selection: $ft) {
+                        ForEach(3...8, id: \.self) { Text("\($0) ft") }
+                    }
+                    .frame(width: 90)
+
+                    Picker("in", selection: $inch) {
+                        ForEach(0...11, id: \.self) { Text("\($0) in") }
+                    }
+                    .frame(width: 90)
+                }
+                .onAppear {
+                    if let h = record.heightCm {
+                        let p = record.cmToFeetInches(h)
+                        ft = p.feet; inch = p.inches
+                    }
+                }
+                .onChange(of: ft)   { _, _ in record.heightCm = record.feetInchesToCm(feet: ft, inches: inch) }
+                .onChange(of: inch) { _, _ in record.heightCm = record.feetInchesToCm(feet: ft, inches: inch) }
+            }
+
+            // ---- Weight (unit-aware) ----
+            Picker("Weight Unit", selection: $record.weightUnit) {
+                Text("kg").tag(SDWeightUnit.kg)
+                Text("lb").tag(SDWeightUnit.pounds)
+            }
+            .pickerStyle(.segmented)
+
+            LabeledNumberField(
+                title: "Weight",
+                value: weightDisplayBinding,
+                precision: 1,
+                unitText: record.weightUnit == .kg ? "kg" : "lb",
+                systemImage: "figure",
+                keyboard: .numberPad,
+                color: .blue
+            )
+
             Text("BMI: \(String(format: "%.1f", record.bmi))")
             LabeledNumberField(title: "Body Fat", value: $record.fatPercent, precision: 1, unitText: "%", systemImage: "figure", color: .blue)
             LabeledNumberField(title: "Abdominal Girth", value: $record.waistCm, precision: 1, unitText: "cm", systemImage: "ruler", color: .blue)
