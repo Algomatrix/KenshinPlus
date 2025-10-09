@@ -15,6 +15,8 @@ enum EyeSide: String, CaseIterable { case right = "Right", left = "Left" }
 
 @Model
 final class CheckupRecord {
+    var pendingDeletion: Bool = false
+
     // Identity/meta
     var id: UUID = UUID()
     var createdAt: Date = Date.now

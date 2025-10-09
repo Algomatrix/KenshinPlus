@@ -10,11 +10,14 @@ import SwiftData
 
 struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \CheckupRecord.date, order: .reverse)
+    @Query(
+        filter: #Predicate<CheckupRecord> { $0.pendingDeletion == false },
+        sort: \CheckupRecord.date, order: .reverse
+    )
     private var records: [CheckupRecord]
 
     // MARK: - DashboardView state
-    @State private var undoStack: [CheckupRecordSnapshot] = []
+    @State private var undoStack: [UUID] = []   // IDs of rows pending deletion
     @State private var undoDeadline: Date? = nil
     private let undoTick = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
 
@@ -173,8 +176,11 @@ struct DashboardView: View {
             .onReceive(undoTick) { _ in
                 if let ddl = undoDeadline, Date() >= ddl {
                     withAnimation {
+                        // Permanently delete anything still pending
+                        let ids = undoStack
                         undoStack.removeAll()
                         undoDeadline = nil
+                        finalizePendingDeletes(for: ids)
                     }
                 }
             }
@@ -214,16 +220,15 @@ struct DashboardView: View {
     }
     
     private func deleteWithUndo(_ recs: [CheckupRecord]) {
-        // 1) snapshot
-        let snaps = recs.map(CheckupRecordSnapshot.init)
-
-        // 2) delete
-        recs.forEach { modelContext.delete($0) }
+        // 1) mark rows as pending deletion
+        for r in recs {
+            r.pendingDeletion = true
+            undoStack.append(r.id) // track the IDs we can restore
+        }
         try? modelContext.save()
 
-        // 3) push + reset window
-        undoStack.append(contentsOf: snaps)
-        undoDeadline = Date().addingTimeInterval(5)   // 5s from the last delete
+        // 2) (re)start the undo window
+        undoDeadline = Date().addingTimeInterval(5)   // give the user 5s to undo
     }
 
     private func deleteWithUndo(_ rec: CheckupRecord) {
@@ -231,17 +236,18 @@ struct DashboardView: View {
     }
 
     private func undoDelete() {
-        guard let snap = undoStack.popLast() else { return }
-        let restored = snap.restoreRecord()
-        modelContext.insert(restored)
-        try? modelContext.save()
-
-        // keep button visible if there are more items; otherwise close window
-        if undoStack.isEmpty {
-            withAnimation { undoDeadline = nil }
-        } else {
-            undoDeadline = Date().addingTimeInterval(5) // optional: give user more time for next undo
+        // Restore everything currently in the stack
+        var restoredAny = false
+        while let id = undoStack.popLast() {
+            if let rec = fetchRecord(by: id) {
+                rec.pendingDeletion = false
+                restoredAny = true
+            }
         }
+        if restoredAny { try? modelContext.save() }
+
+        // Close the undo window
+        withAnimation { undoDeadline = nil }
     }
 
     // Latest (most recent) record
@@ -260,14 +266,32 @@ struct DashboardView: View {
     
     // Latest Height
     private var latestHeightText: String {
-        guard let r = latest else { return "-" }
-        return String(format: "%.1f cm", r.heightCm!)
+        guard let r = latest, let h = r.heightCm else { return "-" }
+        return String(format: "%.1f cm", h)
     }
     
     // Latest BMI
     private var latestBmiText: String {
         guard let r = latest else { return "-" }
         return String(format: "%.1f", r.bmi)
+    }
+    
+    private func fetchRecord(by id: UUID) -> CheckupRecord? {
+        var fd = FetchDescriptor<CheckupRecord>(
+            predicate: #Predicate { $0.id == id }
+        )
+        fd.fetchLimit = 1
+        return (try? modelContext.fetch(fd))?.first
+    }
+
+    /// Permanently deletes any records currently marked for deletion (used when undo window expires)
+    private func finalizePendingDeletes(for ids: [UUID]) {
+        for id in ids {
+            if let rec = fetchRecord(by: id) {
+                modelContext.delete(rec)
+            }
+        }
+        try? modelContext.save()
     }
 }
 
