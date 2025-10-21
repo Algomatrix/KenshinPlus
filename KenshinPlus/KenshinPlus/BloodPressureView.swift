@@ -9,8 +9,8 @@ import SwiftUI
 import Charts
 
 struct BloodPressureView: View {
-    var title: String
-    var subtitle: String
+    var title: LocalizedStringResource
+    var subtitle: LocalizedStringResource
     var symbol: String
     var color: Color
     let records: [CheckupRecord]

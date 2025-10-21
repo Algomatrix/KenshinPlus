@@ -188,7 +188,7 @@ struct CholesterolTestView: View {
     
     // MARK: ------- Triglyceride -------
     var triglycerides: some View {
-        PutBarChartInContainer(title: "Triglyceride") {
+        PutBarChartInContainer(title: "Triglycerides") {
             Chart {
                 if let start = startDate, let end = endDate, !triglyceridesSeries.isEmpty {
                     RectangleMark(
@@ -203,7 +203,7 @@ struct CholesterolTestView: View {
                 ForEach(triglyceridesSeries) { entry in
                     LineMark(
                         x: .value("Date", entry.date),
-                        y: .value("Triglyceride", entry.value)
+                        y: .value("Triglycerides", entry.value)
                     )
                     .foregroundStyle(.blue)
                     .symbol(.circle)
@@ -222,7 +222,7 @@ struct CholesterolTestView: View {
                     AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
                 }
             }
-            .chartYAxisLabel("Triglyceride")
+            .chartYAxisLabel("Triglycerides")
             .overlay {
                 if triglyceridesSeries.isEmpty {
                     NoChartDataView(systemImageName: "heart.circle", title: "No Data", description: "There is no Triglyceride data from App.")

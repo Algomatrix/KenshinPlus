@@ -74,7 +74,7 @@ struct ManualDataInputView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                PutBarChartInContainer(title: "") {
+                PutBarChartInContainer(title: nil) {
                     ManualDataBasicInfoArea(
                         date: $date,
                         unit: $unit,
@@ -332,8 +332,8 @@ struct ManualDataBasicInfoArea: View {
 
             Divider()
 
-            LabeledNumberField(title: "Abdominal girth", value: $abdominalGirthCm, precision: 1, unitText: "cm", systemImage: "ruler", keyboard: .decimalPad)
-                .accessibilityLabel("Abdominal girth")
+            LabeledNumberField(title: "Abdominal Girth", value: $abdominalGirthCm, precision: 1, unitText: "cm", systemImage: "ruler", keyboard: .decimalPad)
+                .accessibilityLabel("Abdominal Girth")
             
             if let abdo = abdominalGirthCm {
                 // Wasit Range Chart

@@ -44,7 +44,7 @@ struct DashboardView: View {
                         DataAtGlanceContainerSmall(
                             title: "Blood Pressure",
                             symbol: "heart",
-                            subtitle: "Systolic and Diastolic",
+                            subtitle: String(localized: "Systolic and Diastolic"),
                             color: .red
                         )
                     }
@@ -55,7 +55,7 @@ struct DashboardView: View {
                         DataAtGlanceContainerSmall(
                             title: "Blood Test",
                             symbol: "syringe.fill",
-                            subtitle: "RBC, WBC, etc",
+                            subtitle: String(localized: "RBC, WBC, etc"),
                             color: .red
                         )
                     }
@@ -69,7 +69,7 @@ struct DashboardView: View {
                         DataAtGlanceContainerSmall(
                             title: "Liver Info",
                             symbol: "chart.line.text.clipboard.fill",
-                            subtitle: "Systolic and Diastolic",
+                            subtitle: String(localized: "AST, ALT, etc"),
                             color: .red
                         )
                     }
@@ -80,7 +80,7 @@ struct DashboardView: View {
                         DataAtGlanceContainerSmall(
                             title: "Uric Acid",
                             symbol: "vial.viewfinder",
-                            subtitle: "Creatine and Uric Acid",
+                            subtitle: String(localized: "Creatinine and Uric Acid"),
                             color: .red
                         )
                     }
@@ -94,7 +94,7 @@ struct DashboardView: View {
                         DataAtGlanceContainerSmall(
                             title: "Metabolism",
                             symbol: "flame.fill",
-                            subtitle: "HbA1c, Fasting Glucose",
+                            subtitle: String(localized: "HbA1c, Fasting Glucose"),
                             color: .orange
                         )
                     }
@@ -105,7 +105,7 @@ struct DashboardView: View {
                         DataAtGlanceContainerSmall(
                             title: "Cholesterol",
                             symbol: "heart.circle",
-                            subtitle: "Creatine and Uric Acid",
+                            subtitle: String(localized: "HDL, LDL, etc"),
                             color: .orange
                         )
                     }
@@ -136,7 +136,7 @@ struct DashboardView: View {
 //                    }
 //                }
 
-                PutBarChartInContainer(title: "") {
+                PutBarChartInContainer(title: nil) {
                     DisclosureGroup {
                         PutBarChartInContainer(title: "Checkup History") {
                             if records.isEmpty {

@@ -69,7 +69,7 @@ private struct ResultCard: View {
     let state: TestResultState
 
     var body: some View {
-        PutBarChartInContainer(title: ear.title) {
+//        PutBarChartInContainer(title: ear.title) {
             Text(band.label)
                 .font(.callout)
                 .foregroundStyle(.secondary)
@@ -78,7 +78,7 @@ private struct ResultCard: View {
                 .font(.headline)
                 .foregroundStyle(state.color)
                 .padding(.top, 2)
-        }
+//        }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(ear.title), \(band.label), \(state.title)")
     }

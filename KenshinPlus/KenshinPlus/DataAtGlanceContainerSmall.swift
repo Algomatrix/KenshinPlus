@@ -9,7 +9,7 @@ import SwiftUI
 
 struct DataAtGlanceContainerSmall: View {
     
-    var title: String
+    var title: LocalizedStringResource
     var symbol: String
     var subtitle: String
     var color: Color
@@ -44,7 +44,7 @@ struct DataAtGlanceContainerSmall: View {
 
 /// A small container/card that hosts any content
 struct DataHoldingContainer<Content: View>: View {
-    let title: String
+    let title: LocalizedStringResource
     @ViewBuilder var content: () -> Content
 
     var body: some View {
