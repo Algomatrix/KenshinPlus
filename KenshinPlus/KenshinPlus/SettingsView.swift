@@ -181,7 +181,7 @@ struct BirthDateEditor: View {
                 Text("We only store the selected date on device. You can change it anytime.")
             }
         }
-        .navigationTitle("Birth date")
+        .navigationTitle("Birth Date")
         .onAppear {
             if let existing = dob.date { tempDate = existing }
         }

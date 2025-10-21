@@ -9,8 +9,8 @@ import SwiftUI
 
 struct NoChartDataView: View {
     let systemImageName: String
-    let title: String
-    let description: String
+    let title: LocalizedStringResource
+    let description: LocalizedStringResource
 
     var body: some View {
         ContentUnavailableView {
