@@ -175,12 +175,14 @@ struct Usual2Reference: View {
 
 /// A single-row horizontal bar with reference segments and a filled “progress” from domain start to the current value.
 struct MeasurementBar: View {
-    let title: String
+    let title: LocalizedStringResource
     let value: Double
     let domain: ClosedRange<Double>
     let segments: [RangeSeg]
     var lineColor: Color = .blue
     var valueFormatter: (Double) -> String = { String(format: "%.1f", $0) }
+    
+    private var categoryLabel: String { String(localized: title) }
 
     private var clampedValue: Double {
         min(max(value, domain.lowerBound), domain.upperBound)
@@ -193,13 +195,13 @@ struct MeasurementBar: View {
                 ForEach(segments) { seg in
                     BarMark(xStart: .value("Start", seg.start),
                             xEnd:   .value("End", seg.end),
-                            y:      .value("Band", title))
+                            y:      .value("Band", categoryLabel))
                     .foregroundStyle(seg.color)
                 }
                 // Progress fill from domain lower bound → current value
                 RuleMark(xStart: .value("Start", domain.lowerBound),
                         xEnd:   .value("Value", clampedValue),
-                        y:      .value("Band", title))
+                        y:      .value("Band", categoryLabel))
                 .lineStyle(StrokeStyle(lineWidth: 2))
                 .foregroundStyle(lineColor)
                 .annotation(position: .topTrailing, alignment: .center) {
