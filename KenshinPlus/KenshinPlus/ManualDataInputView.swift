@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PhotosUI
 
 struct ManualDataInputView: View {
     @Environment(\.modelContext) private var modelContext
@@ -27,7 +28,6 @@ struct ManualDataInputView: View {
     @State private var hctPercent: Double? = nil
     @State private var pltThousandPeruL: Double? = nil
     @State private var wbcThousandPeruL: Double? = nil
-
     
     // Fat % and Abdominal girth
     @State private var fatPercent: Double? = nil
@@ -70,6 +70,16 @@ struct ManualDataInputView: View {
     @State private var hearingR1k:  TestResultState = .normal
     @State private var hearingL4k:  TestResultState = .normal
     @State private var hearingR4k:  TestResultState = .normal
+
+    // Picker & scanning UX
+    @State private var showPhotoPicker = false
+    @State private var pickerItem: PhotosPickerItem?
+    @State private var scanSheetVisible = false
+    @State private var scanPreview: UIImage?
+    @State private var isScanning = false
+    @State private var scanError: String?
+    @State private var sweepProgress = SweepProgress.zero
+    @State private var scanTask: Task<Void, Never>?
 
     var body: some View {
         ScrollView {
@@ -169,7 +179,71 @@ struct ManualDataInputView: View {
         }
         .navigationTitle("Add Checkup Data")
         .navigationBarTitleDisplayMode(.automatic)
+        // 1) Present PhotosPicker programmatically from toolbar
+        .photosPicker(isPresented: $showPhotoPicker,
+                      selection: $pickerItem,
+                      matching: .images,
+                      photoLibrary: .shared())
+        
+        // 2) Kick off parsing when a photo is chosen
+        .onChange(of: pickerItem) { _, newItem in
+            guard let item = newItem else { return }
+            scanTask = Task { await startScanFlow(with: item) }
+        }
+        
+        // 3) Show the processing sheet
+        .sheet(isPresented: $scanSheetVisible) {
+            VStack(spacing: 16) {
+                if let img = scanPreview {
+                    Image(uiImage: img)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 280)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .padding(.top)
+                }
+                if isScanning {
+                    if sweepProgress.totalSteps > 0 {
+                        ProgressView(value: sweepProgress.fraction) {
+                            Text(sweepProgress.labelText)
+                        } currentValueLabel: {
+                            Text("\(Int(sweepProgress.fraction * 100))%")
+                        }
+                        .padding(.bottom)
+
+                        Text(sweepProgress.detailText)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ProgressView("Reading document…")
+                            .padding(.bottom)
+                    }
+                }
+                if let err = scanError {
+                    Text(err).foregroundStyle(.red).font(.footnote)
+                }
+                Button("Close") {
+                    scanTask?.cancel()
+                    scanSheetVisible = false
+                    isScanning = false
+                }
+                .buttonStyle(.bordered)
+                .padding(.bottom)
+            }
+            .padding()
+            .presentationDetents([.medium, .large])
+        }
+        
         .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    // Trigger PhotosPicker; the sheet will appear AFTER selection.
+                    showPhotoPicker = true
+                } label: {
+                    Label("Scan from Photo", systemImage: "photo.on.rectangle")
+                }
+            }
+
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     saveRecord()
@@ -184,11 +258,96 @@ struct ManualDataInputView: View {
             }
         }
     }
+    
+    @MainActor
+    private func updateProgress(_ p: SweepProgress) {
+        withAnimation(.linear(duration: 0.15)) {
+            sweepProgress = p
+        }
+    }
+    
+    // MARK: - Scan flow
+    private func startScanFlow(with item: PhotosPickerItem) async {
+        await MainActor.run {
+            scanError = nil
+            isScanning = true
+            scanSheetVisible = true
+            sweepProgress = .zero
+        }
+
+        do {
+            guard let data = try await item.loadTransferable(type: Data.self),
+                  let preview = UIImage(data: data) else {
+                await MainActor.run {
+                    scanError = "Couldn’t load the selected image."
+                    isScanning = false
+                }
+                return
+            }
+            await MainActor.run { scanPreview = preview }
+
+            let patch = try await parseCheckup(from: data) { p in
+                #if DEBUG
+                updateProgress(SweepProgress(parse: p, userFacing: false)) // verbose for dev
+                #else
+                updateProgress(SweepProgress(parse: p, userFacing: true))  // clean for users
+                #endif
+            }
+
+            await MainActor.run {
+                apply(patch: patch)
+                isScanning = false
+                scanSheetVisible = false
+            }
+        } catch {
+            await MainActor.run {
+                scanError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                isScanning = false
+            }
+        }
+    }
+
+    private func apply(patch: CheckupPatch) {
+        // Anthropometrics / BP
+        if let v = patch.heightCm { heightCm = v }
+        if let v = patch.weightKg { weightKg = v }
+        if let v = patch.waistCm  { abdominalGirthCm = v }
+        if let v = patch.systolic { systolic = v }
+        if let v = patch.diastolic { diastolic = v }
+        
+        // CBC
+        if let v = patch.hgbPerdL { hgbPerdL = v }
+        if let v = patch.rbcMillionPeruL { rbcMillionPeruL = v }
+        if let v = patch.hctPercent { hctPercent = v }
+        if let v = patch.wbcThousandPeruL { wbcThousandPeruL = v }
+        if let v = patch.pltThousandPeruL { pltThousandPeruL = v }
+        
+        // Liver
+        if let v = patch.ast { ast = v }
+        if let v = patch.alt { alt = v }
+        if let v = patch.ggt { ggt = v }
+        if let v = patch.totalProtein { totalProtein = v }
+        if let v = patch.albumin { albumin = v }
+        
+        // Renal / Urate
+        if let v = patch.creatinine { creatinine = v }
+        if let v = patch.uricAcid { uricAcid = v }
+        
+        // Metabolism
+        if let v = patch.fastingGlucoseMgdl { fastingBloodGlucose = v }
+        if let v = patch.hba1cNgspPercent { hbA1c = v }
+        
+        // Lipids
+        if let v = patch.totalChol { totalCholesterol = v }
+        if let v = patch.hdl { hdl = v }
+        if let v = patch.ldl { ldl = v }
+        if let v = patch.triglycerides { triglycerides = v }
+    }
 
     private func saveRecord() {
         let record = CheckupRecord(
             id: UUID(),
-            createdAt: date,
+            createdAt: Date(),
             date: date,
             gender: (gender == .Male) ? .male : .female,
             heightCm: heightCm,
@@ -240,7 +399,6 @@ struct ManualDataInputView: View {
         try? modelContext.save()
     }
 }
-
 struct ManualDataBasicInfoArea: View {
     @Binding var date: Date
     @Binding var unit: LengthUnit
