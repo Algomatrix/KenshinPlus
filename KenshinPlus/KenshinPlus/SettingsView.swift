@@ -100,7 +100,7 @@ struct SettingsView: View {
             HStack {
                 Text("App Version")
                 Spacer()
-                Text("1.1.0")
+                Text(AppVersion.current)
                     .foregroundStyle(.secondary)
             }
 //            NavigationLink("Future Updates", destination: FutureUpdates())
