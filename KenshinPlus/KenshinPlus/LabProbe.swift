@@ -9,18 +9,6 @@ import Foundation
 import OSLog
 import Vision
 
-
-/// Internal candidate capture (value + unit + label + source line indices).
-/// Keeps richer provenance while selecting the best analyte values.
-/// - Note: `Sendable` for async safety.
-struct Cand: Sendable {
-    let value: Double
-    let unit: String
-    let label: String
-    let labelLine: Int
-    let valueLine: Int
-}
-
 // Heuristics
 /// Header tokens that likely denote a label/parameter column.
 /// Used to *penalize* choosing this column as the values column.
@@ -58,12 +46,23 @@ public enum LabProbe {
     ///   - valueLine: Reading-order line index for the value.
     ///   - labelLine: Reading-order line index where the label was seen.
     public struct Result: Sendable {
-        public let key: String           // canonical key, e.g. "AST"
-        public let label: String         // matched label text from the doc
+        public let key: String
+        public let label: String
         public let value: Double
-        public let unit: String
-        public let valueLine: Int        // line index where the value came from
-        public let labelLine: Int        // line index where the label was found
+        public let unit: LabUnit
+        public let valueLine: Int
+        public let labelLine: Int
+    }
+
+    /// Internal candidate capture (value + unit + label + source line indices).
+    /// Keeps richer provenance while selecting the best analyte values.
+    /// - Note: `Sendable` for async safety.
+    struct Cand: Sendable {
+        let value: Double
+        let unit: LabUnit
+        let label: String
+        let labelLine: Int
+        let valueLine: Int
     }
     
     /// Canonical analytes recognized by the heuristics.
@@ -74,37 +73,38 @@ public enum LabProbe {
     
     /// Label keywords per analyte (JP/EN and common OCR quirks).
     /// Used by reading-order probe to anchor search windows.
-    private static let KEYWORDS: [Analyte: [String]] = [
-        // CBC
-        .WBC: [], .RBC: [], .HGB: [], // (left blank on purpose – add later if you want CBC here)
-        .HCT: ["ヘマトクリット","ヘマトクリット値","hct","hematocrit"],
-        .PLT: ["血小板数","plt","platelet"],
-        
-        // Liver
-        .AST: ["ast(got)","ast","got"],
-        .ALT: ["alt(gpt)","alt (gpt)","alt","gpt"],
-        .GGT: ["γ-gt","y-gt","γgt","y-gt(y-gtp)","γ-gtp","ggt"],
-        .ALP: ["alp ifcc","alp"],
-        .LDH: ["ld ifcc","ldh","ld"],
-        
-        .TP:  ["総蛋白","総たんぱく","total protein","tp"],
-        .ALB: ["アルブミン","albumin","alb"],
-        .TC:  ["総コレステロール","total cholesterol","tc"],
-        
-        // Renal / urate
-        .CRE: ["クレアチニン","creatinine","cre","cr"],
-        .eGFR:["egfr"],
-        .UA:  ["尿酸","uric acid","ua"],
-        
-        // Metabolism
-        .GLU: ["グルコース（血糖）","血糖","空腹時血糖","glucose","glu"],
-        .HbA1c:["hba1c","hb a1c","hba 1c ngsp","ヘモグロビンa1c","HbA1c"],
-        
-        // Lipids
-        .LDL: ["ldlコレステロール","ldl-c","ldl"],
-        .HDL: ["hdlコレステロール","hdl-c","hdl"],
-        .TG:  ["中性脂肪（tg）","中性脂肪","トリグリセリド","triglycerides","tg"],
-    ]
+    private static let KEYWORDS: [Analyte: [String]] = {
+        var out: [Analyte: [String]] = [:]
+        func mapKey(_ k: AnalyteKey) -> Analyte? {
+            switch k {
+            case .WBC: return .WBC
+            case .RBC: return .RBC
+            case .HGB: return .HGB
+            case .HCT: return .HCT
+            case .PLT: return .PLT
+            case .AST: return .AST
+            case .ALT: return .ALT
+            case .ALP: return .ALP
+            case .GGT: return .GGT
+            case .LDH: return .LDH
+            case .TP: return .TP
+            case .ALB: return .ALB
+            case .CRE: return .CRE
+            case .eGFR: return .eGFR
+            case .UA: return .UA
+            case .GLU: return .GLU
+            case .HbA1c: return .HbA1c
+            case .LDL: return .LDL
+            case .HDL: return .HDL
+            case .TG: return .TG
+            case .TC: return .TC
+            }
+        }
+        for (k, labels) in AnalyteLexicon.labels {
+            if let a = mapKey(k) { out[a] = labels }
+        }
+        return out
+    }()
     
     // MARK: Public probe
     
@@ -136,17 +136,17 @@ public enum LabProbe {
         
         // 2) Simple label -> nearest plausible value
         func capture(_ a: Analyte, keys: [String]) {
-            guard best[a] == nil else { return } // keep lipid bundle if already set
-            guard let idx = firstIndex(ofAny: keys, in: lines) else { return }
-            if let found = bestAfterLabel(for: a, from: idx, lines: lines, maxLookahead: lookahead) {
-                let unitTok = unitToken(lines[found.valueLine])
-                best[a] = Cand(value: found.value,
-                               unit: unitTok,
-                               label: lines[idx],
-                               labelLine: idx,
-                               valueLine: found.valueLine)
-                debugFound(a, value: found.value, label: lines[idx], labelIdx: idx, valueIdx: found.valueLine)
-            }
+          guard best[a] == nil else { return } // keep lipid bundle if already set
+          guard let idx = firstIndex(ofAny: keys, in: lines) else { return }
+          if let found = bestAfterLabel(for: a, from: idx, lines: lines, maxLookahead: lookahead) {
+              let unitTok: LabUnit = UnitDetector.detect(in: lines[found.valueLine])
+              best[a] = Cand(value: found.value,
+                             unit: unitTok,
+                             label: lines[idx],
+                             labelLine: idx,
+                             valueLine: found.valueLine)
+            debugFound(a, value: found.value, label: lines[idx], labelIdx: idx, valueIdx: found.valueLine)
+          }
         }
         
         // Map analytes you care about
@@ -175,8 +175,8 @@ public enum LabProbe {
         for a in Analyte.allCases.sorted(by: { $0.rawValue < $1.rawValue }) {
             if let c = best[a] {
                 let val = String(format: "%.3f", c.value)
-                let unit = c.unit.isEmpty ? "" : " \(c.unit)"
-                print("• \(a.rawValue.padding(toLength: 6, withPad: " ", startingAt: 0))  \(val)\(unit)")
+                let uStr = UnitString.describe(c.unit)
+                print("• \(a.rawValue.padding(toLength: 6, withPad: " ", startingAt: 0))  \(val)\(uStr.isEmpty ? "" : " \(uStr)")")
             }
         }
         
@@ -202,7 +202,7 @@ public enum LabProbe {
     ///
     /// - Parameter lines: Document lines in reading order.
     /// - Returns: Partial analyte map with label provenance when matched.
-    private static func tryLipidRowBundle(lines: [String]) -> [Analyte: (value: Double, unit: String, label: String, labelLine: Int, valueLine: Int)] {
+    private static func tryLipidRowBundle(lines: [String]) -> [Analyte: (value: Double, unit: LabUnit, label: String, labelLine: Int, valueLine: Int)] {
         let wants: [(needle: String, analyte: Analyte)] = [
             ("総コレステロール", .TC),
             ("ldlコレステロール", .LDL),
@@ -231,13 +231,14 @@ public enum LabProbe {
         guard let rowIdx = numbersLine else { return [:] }
         
         let vals = OCRParse.numbers(in: lines[rowIdx])
-        var out: [Analyte: (Double, String, String, Int, Int)] = [:]
+        var out: [Analyte: (Double, LabUnit, String, Int, Int)] = [:]
         let ordered: [Analyte] = [.TC, .LDL, .HDL]
         for (k, a) in ordered.enumerated() where k < vals.count {
             let v = vals[k]
             guard plausible(v, for: a) else { continue }
             let labelLine = labelIdxs.first(where: { $0.a == a })?.idx ?? start
-            out[a] = (v, unitToken(lines[rowIdx]), lines[labelLine], labelLine, rowIdx)
+            let detected: LabUnit = UnitDetector.detect(in: lines[rowIdx])
+            out[a] = (v, detected, lines[labelLine], labelLine, rowIdx)
             debugFound(a, value: v, label: lines[labelLine], labelIdx: labelLine, valueIdx: rowIdx)
         }
         return out
@@ -265,18 +266,14 @@ public enum LabProbe {
             let vals = OCRParse.numbers(in: line)
             guard !vals.isEmpty else { continue }
             
-            let unitHere = normUnit(line)
+            let unitHere = UnitDetector.detect(in: line)
             for v in vals where plausible(v, for: a) {
-                var s = 1.0 / Double(1 + offset)
-                if !unitHere.isEmpty { s += 1.0 }
-                switch a {
-                case .LDL, .HDL, .TG, .TC:
-                    if abs(v.rounded() - v) < 0.001 { s += 0.1 } // nice-to-have: whole numbers
-                default: break
-                }
-                if best == nil || s > best!.score {
-                    best = Candidate(score: s, value: v, valueLine: i)
-                }
+              var s = 1.0 / Double(1 + offset)
+              if unitHere != .unknown { s += 1.0 }   // unit presence bonus
+              if [.LDL, .HDL, .TG, .TC].contains(a), abs(v.rounded() - v) < 0.001 { s += 0.1 }
+              if best == nil || s > best!.score {
+                best = Candidate(score: s, value: v, valueLine: i)
+              }
             }
         }
         return best.map { ($0.value, $0.valueLine) }
@@ -297,54 +294,6 @@ public enum LabProbe {
     /// Normalizes by lowercasing and removing ASCII/JP spaces for robust contains().
     private static func low(_ s: String) -> String {
         s.lowercased().replacingOccurrences(of: " ", with: "").replacingOccurrences(of: "　", with: "")
-    }
-    
-    /// Coarse unit detector (mg/dL, g/dL, U/L, %, various CBC forms, mmol/L).
-    /// - Returns: Normalized unit token or empty string.
-    private static func unitToken(_ s: String) -> String {
-        let t = s
-          .replacingOccurrences(of: "μ", with: "µ")
-          .replacingOccurrences(of: "∕", with: "/")
-          .replacingOccurrences(of: " ", with: "")
-          .replacingOccurrences(of: "　", with: "")
-          .replacingOccurrences(of: "\n", with: "")
-          .lowercased()
-
-        if t.contains("mg/dl") || t.contains("mg∕dl") { return "mg/dL" }
-        if t.contains("g/dl")  { return "g/dL" }
-        if t.contains("u/l") || t.contains("iu/l") { return "U/L" }
-        if t.contains("%") { return "%" }
-        if t.contains("10^3") || t.contains("k/") || t.contains("10^9/l") { return "10^3/µL" }
-        if t.contains("10^6") || t.contains("mill") { return "10^6/µL" }
-        if t.contains("/µl") || t.contains("/ul") || t.contains("cumm") { return "/µL" }
-        if t.contains("mmol/l") { return "mmol/L" }
-        if t.contains("万/µl") || t.contains("万/ul") { return "10^4/µL" }
-        if t.contains("千/µl") || t.contains("千/ul") { return "10^3/µL" }
-
-        // Also accept explicit 10^4 patterns (including superscript)
-        if t.contains("10^4/") || t.contains("10⁴/") { return "10^4/µL" }
-
-        return ""
-    }
-    
-    /// More permissive unit normalizer to support scoring (not stored).
-    /// Fixes common OCR confusions (I→U, 0→U, slashes, fullwidth digits).
-    private static func normUnit(_ s: String) -> String {
-        let t = low(s)
-            .replacingOccurrences(of: "i/l", with: "u/l")
-            .replacingOccurrences(of: "0/l", with: "u/l")
-            .replacingOccurrences(of: "ag/dl", with: "mg/dl")
-            .replacingOccurrences(of: "∕", with: "/")
-            .replacingOccurrences(of: "１", with: "1")
-            .replacingOccurrences(of: "ｌ", with: "l")
-        if t.contains("mg/dl") { return "mg/dl" }
-        if t.contains("g/dl")  { return "g/dl" }
-        if t.contains("u/l")   { return "u/l" }
-        if t.contains("%")     { return "%" }
-        if t.contains("10^3") || t.contains("k/") || t.contains("10^9/l") { return "10^3/ul" }
-        if t.contains("10^6") || t.contains("mill")                       { return "10^6/ul" }
-        if t.contains("/ul") || t.contains("/µl") || t.contains("cumm")   { return "/ul" }
-        return ""
     }
     
     /// Detects lines that are likely headers or reference ranges. Such lines
@@ -402,54 +351,16 @@ public enum LabProbe {
     }
 
     /// Merges lipid-row captures into the working candidate map.
-    private static func merge(into dst: inout [Analyte: Cand], from src: [Analyte: (value: Double, unit: String, label: String, labelLine: Int, valueLine: Int)]) {
-        for (a, s) in src {
-            dst[a] = Cand(value: s.value, unit: s.unit, label: s.label, labelLine: s.labelLine, valueLine: s.valueLine)
-        }
+    private static func merge(
+      into dst: inout [Analyte: Cand],
+      from src: [Analyte: (value: Double, unit: LabUnit, label: String, labelLine: Int, valueLine: Int)]
+    ) {
+      for (a, s) in src {
+        dst[a] = Cand(value: s.value, unit: s.unit, label: s.label, labelLine: s.labelLine, valueLine: s.valueLine)
+      }
     }
     
     // MARK: - Generic “panel” table parser (auto-picks value column)
-    
-    /// Aggressive normalization for table header/cell text (lowercase, trim, remove spaces/newlines, fix fraction slash).
-    private static func compact(_ s: String) -> String {
-        s.lowercased()
-            .replacingOccurrences(of: " ", with: "")
-            .replacingOccurrences(of: "　", with: "")
-            .replacingOccurrences(of: "\n", with: "")
-            .replacingOccurrences(of: "∕", with: "/")
-    }
-
-    /// Unit detector tailored for table cells (also recognizes 千/万 per µL).
-    private static func unitTokenForTable(_ s: String) -> String {
-        let t = compact(s)
-        if t.contains("mg/dl") { return "mg/dL" }
-        if t.contains("g/dl")  { return "g/dL" }
-        if t.contains("u/l") || t.contains("iu/l") { return "U/L" }
-        if t.contains("%")     { return "%" }
-        if t.contains("千/ul") || t.contains("千/µl") { return "10^3/µL" }
-        if t.contains("万/ul") || t.contains("万/µl") { return "10^4/µL" }
-        if t.contains("/ul") || t.contains("/µl") || t.contains("cumm") { return "/µL" }
-        return ""
-    }
-    
-    /// Normalizes WBC/PLT counts into 10^3/µL space (handles 千/万 and absolute).
-    private static func toThousandsPeruL(_ v: Double, unit: String) -> Double {
-        switch unit {
-        case "10^3/µL": return v
-        case "10^4/µL": return v * 10.0
-        case "/µL":     return v / 1000.0
-        default:        return v > 2000 ? v/1000.0 : v
-        }
-    }
-
-    /// Normalizes RBC counts into 10^6/µL space (handles 万/µL).
-    private static func toRBCMillionPeruL(_ v: Double, unit: String) -> Double {
-        switch unit {
-        case "10^6/µL": return v
-        case "10^4/µL": return v / 100.0
-        default:        return v
-        }
-    }
     
     /// Picks a plausible header row (among the first 3) by token hits (label/unit/range/value).
     /// - Returns: Header row index or 0 as a safe default.
@@ -459,12 +370,12 @@ public enum LabProbe {
         var best: (idx: Int, score: Int) = (0, -1)
         for i in 0..<min(rows.count, 3) {
             let joined = rows[i].map { $0.content.text.transcript }.joined()
-            let s = compact(joined)
+            let s = OCRText.compact(joined)
             var sc = 0
-            if LABEL_HEADER_TOKENS.contains(where: { s.contains(compact($0)) }) { sc += 2 }
-            if UNIT_HEADER_TOKENS.contains(where:  { s.contains(compact($0)) }) { sc += 2 }
-            if RANGE_HEADER_TOKENS.contains(where: { s.contains(compact($0)) }) { sc += 2 }
-            if VALUE_HEADER_TOKENS.contains(where: { s.contains(compact($0)) }) { sc += 3 }
+            if LABEL_HEADER_TOKENS.contains(where: { s.contains(OCRText.compact($0)) }) { sc += 2 }
+            if UNIT_HEADER_TOKENS.contains(where:  { s.contains(OCRText.compact($0)) }) { sc += 2 }
+            if RANGE_HEADER_TOKENS.contains(where: { s.contains(OCRText.compact($0)) }) { sc += 2 }
+            if VALUE_HEADER_TOKENS.contains(where: { s.contains(OCRText.compact($0)) }) { sc += 3 }
             if sc > best.score { best = (i, sc) }
         }
         return best.score >= 0 ? best.idx : 0
@@ -479,8 +390,8 @@ public enum LabProbe {
         let colCount = rows.map(\.count).max() ?? 0
         
         func isHeaderHit(_ txt: String, tokens: [String]) -> Bool {
-            let s = compact(txt)
-            return tokens.contains { s.contains(compact($0)) }
+            let s = OCRText.compact(txt)
+            return tokens.contains { s.contains(OCRText.compact($0)) }
         }
         
         var best: (col: Int, score: Double) = (-1, -1.0)
@@ -517,7 +428,7 @@ public enum LabProbe {
     private static func indexOfUnitColumn(in t: DocumentObservation.Container.Table, headerRow hr: Int) -> Int? {
         guard hr < t.rows.count else { return nil }
         for (c, cell) in t.rows[hr].enumerated() {
-            if compact(cell.content.text.transcript).contains("単位") { return c }
+            if OCRText.compact(cell.content.text.transcript).contains("単位") { return c }
         }
         return nil
     }
@@ -544,14 +455,14 @@ public enum LabProbe {
             let unitCol = indexOfUnitColumn(in: t, headerRow: hr)
             
             for row in t.rows.dropFirst(hr+1) {
-                let label = compact(rowLabel(row))
+                let label = OCRText.compact(rowLabel(row))
                 let valueTxt = (valueCol < row.count) ? row[valueCol].content.text.transcript : ""
                 guard let v = OCRParse.numbers(in: valueTxt).first else { continue } // reuse static numbers(in:)
                 
                 let unitTxt = (unitCol != nil && unitCol! < row.count)
-                ? row[unitCol!].content.text.transcript
-                : valueTxt
-                let u = unitTokenForTable(unitTxt)
+                  ? row[unitCol!].content.text.transcript
+                  : valueTxt
+                let u = UnitDetector.detect(in: unitTxt)
                 
                 // Anthropometrics
                 if label.contains("身長") { out.heightCm = v; continue }
@@ -560,11 +471,11 @@ public enum LabProbe {
                 if label.contains("bmi") { out.bmi = v; continue }
                 
                 // CBC
-                if label.contains("白血球") || label.contains("wbc") { out.wbcThousandPeruL = toThousandsPeruL(v, unit: u); continue }
-                if label.contains("赤血球") || label.contains("rbc") { out.rbcMillionPeruL  = toRBCMillionPeruL(v, unit: u); continue }
+                if label.contains("白血球") || label.contains("wbc") { out.wbcThousandPeruL = Convert.toThousandsPeruL(value: v, unit: u); continue }
+                if label.contains("赤血球") || label.contains("rbc") { out.rbcMillionPeruL  = Convert.rbcToMillionPeruL(value: v, unit: u); continue }
                 if label.contains("ヘモグロビン") || label.contains("hgb") || label.contains("hemoglobin") { out.hgbPerdL = v; continue }
                 if label.contains("ヘマトクリット") || label.contains("hct") || label.contains("hematocrit") { out.hctPercent = v; continue }
-                if label.contains("血小板") || label.contains("plt") || label.contains("platelet") { out.pltThousandPeruL = toThousandsPeruL(v, unit: u); continue }
+                if label.contains("血小板") || label.contains("plt") || label.contains("platelet") { out.pltThousandPeruL = Convert.toThousandsPeruL(value: v, unit: u); continue }
                 
                 // Liver
                 if label.contains("ast") || label.contains("got") { out.ast = v; continue }

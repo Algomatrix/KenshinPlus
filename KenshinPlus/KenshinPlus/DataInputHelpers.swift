@@ -228,54 +228,6 @@ struct LegendRow: View {
     }
 }
 
-/// Small helpers for numeric token extraction from OCR text.
-///
-/// Compiles a single `NSRegularExpression` once (thread-safe) and exposes
-/// convenience methods to pull numeric values from mixed-language strings.
-///
-/// - Note: Replaces “,” with “.” before parsing to accommodate common OCR
-///         decimal punctuation.
-/// - ThreadSafety: All APIs are static and re-use a compiled regex.
-enum OCRParse {
-
-    /// Pre-compiled numeric matcher: `-?\d+(?:\.\d+)?`
-    ///
-    /// - Important: Kept private; use `numbers(in:)` / `firstNumber(in:)`.
-    /// - Performance: Compiled once and reused to avoid per-call overhead.
-  private static let re: NSRegularExpression = try! .init(
-    pattern: #"-?\d+(?:\.\d+)?"#, options: []
-  )
-
-    /// Extracts all numeric tokens from a string, tolerant of OCR punctuation.
-    ///
-    /// The function first normalizes decimal commas to periods, then scans the
-    /// string for integers or decimals and returns them as `Double`s.
-    ///
-    /// - Parameter s: Source text (e.g., a cell transcript or line).
-    /// - Returns: An array of `Double` values in source order. Empty if none found.
-    /// - Example:
-    ///   ```swift
-    ///   OCRParse.numbers(in: "LDL 132, HDL 58, TG 121")  // [132, 58, 121]
-    ///   ```
-
-  static func numbers(in s: String) -> [Double] {
-    let s2 = s.replacingOccurrences(of: ",", with: ".")
-    let r  = NSRange(s2.startIndex..., in: s2)
-    return re.matches(in: s2, range: r)
-      .compactMap { Range($0.range, in: s2) }
-      .compactMap { Double(String(s2[$0])) }
-  }
-
-    /// Convenience for the first numeric token in a string.
-    ///
-    /// - Parameter s: Source text to scan.
-    /// - Returns: The first parsed `Double`, or `nil` if none exist.
-    /// - SeeAlso: `numbers(in:)`.
-  static func firstNumber(in s: String) -> Double? {
-    numbers(in: s).first
-  }
-}
-
 #Preview {
     LabeledNumberField(title: "Hello", value: .constant(20.0), precision: 2, unitText: nil, systemImage: "figure", keyboard: .decimalPad, color: .blue)
     Usual4Reference()
