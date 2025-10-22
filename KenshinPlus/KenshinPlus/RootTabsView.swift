@@ -14,6 +14,16 @@ enum MainTab: Hashable {
 
 struct RootTabsView: View {
     @State private var tab: MainTab = .dashboard
+    
+    // persisted flags
+    @AppStorage(OnboardingKeys.hasShownOnFirstLaunch)
+    private var hasShownOnFirstLaunch: Bool = false
+    
+    @AppStorage(OnboardingKeys.lastShownWhatsNewVersion)
+    private var lastShownWhatsNewVersion: String = ""
+    
+    // presentaition state
+    @State private var showWhatsNew = false
 
     var body: some View {
         TabView(selection: $tab) {
@@ -29,6 +39,28 @@ struct RootTabsView: View {
             }
             .tabItem { Label("Settings", systemImage: "gear") }
             .tag(MainTab.settings)
+        }
+        .sheet(isPresented: $showWhatsNew) {
+            WhatsNewSheet(
+                features: WhatsNewSheet.sampleFeatures,
+                primaryButtonTitle: hasShownOnFirstLaunch ? "Got it" : "Get Started",
+                onPrimary: {
+                    hasShownOnFirstLaunch = true
+                    lastShownWhatsNewVersion = AppVersion.current
+                    showWhatsNew = false
+                }
+            )
+            .interactiveDismissDisabled() // Force a tap on the button
+        }
+        .task {
+            // Detect when to show
+            if !hasShownOnFirstLaunch {
+                // first install
+                showWhatsNew = true
+            } else if lastShownWhatsNewVersion != AppVersion.current {
+                // optional: re-show after an update
+                showWhatsNew = true
+            }
         }
     }
 }
