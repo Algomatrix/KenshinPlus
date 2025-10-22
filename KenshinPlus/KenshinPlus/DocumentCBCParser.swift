@@ -130,15 +130,13 @@ public func parseCheckup(
     var tables = document.tables
 
     if tables.isEmpty {
-        if #available(iOS 18.0, *) {
-            let swept = await VisionSweep.findTablesBySweeping(
-                imageData: imageData,
-                onProgress: onProgress   // <-- forward
-            )
-            if !swept.isEmpty {
-                print("Sweep recovered \(swept.count) table(s).")
-                tables = swept
-            }
+        let swept = await VisionSweep.findTablesBySweeping(
+            imageData: imageData,
+            onProgress: onProgress   // <-- forward
+        )
+        if !swept.isEmpty {
+            print("Sweep recovered \(swept.count) table(s).")
+            tables = swept
         }
     }
 
@@ -179,18 +177,18 @@ public func parseTable(_ table: DocumentObservation.Container.Table) -> CheckupP
 
         // --- Anthropometrics ---
         if label.contains("身長") || labelLocalized(label, hasAnyOf: ["height"]) {
-            if let (v, u) = firstNumericAndUnit(in: row), u == "cm" || u.isEmpty { out.heightCm = v }
+            if let (v, u) = firstNumericAndUnit(in: row), u == .cm || u == .unknown { out.heightCm = v }
             continue
         }
         if label.contains("体重") || labelLocalized(label, hasAnyOf: ["weight"]) {
-            if let (v, u) = firstNumericAndUnit(in: row), u == "kg" || u.isEmpty { out.weightKg = v }
+            if let (v, u) = firstNumericAndUnit(in: row), u == .kg || u == .unknown { out.weightKg = v }
             continue
         }
         if label.contains("腹") || labelLocalized(label, hasAnyOf: ["waist", "abdominal", "waist circumference"]) {
-            if let (v, u) = firstNumericAndUnit(in: row), u == "cm" || u.isEmpty { out.waistCm = v }
+            if let (v, u) = firstNumericAndUnit(in: row), u == .cm || u == .unknown { out.waistCm = v }
             continue
         }
-        if label.contains("BMI") {
+        if labelLocalized(label, hasAnyOf: ["bmi"]) {
             if let (v, _) = firstNumericAndUnit(in: row) { out.bmi = v }
             continue
         }
@@ -210,20 +208,33 @@ public func parseTable(_ table: DocumentObservation.Container.Table) -> CheckupP
         }
 
         // --- CBC ---
-        if labelLocalized(label, hasAnyOf: ["hemoglobin", "hgb", "ヘモグロビン"]) {
-            if let (v, _) = firstNumericAndUnit(in: row) { out.hgbPerdL = v; continue }
+        // HGB
+        if labelLocalized(label, hasAnyOf: ["hemoglobin","hgb","ヘモグロビン","血色素量"]) {
+          if let (v, _) = firstNumericAndUnit(in: row) { out.hgbPerdL = v; continue }
         }
+        // RBC  → Convert.rbcToMillionPeruL
         if labelLocalized(label, hasAnyOf: ["rbc", "赤血球"]) {
-            if let (v, u) = firstNumericAndUnit(in: row) { out.rbcMillionPeruL = toRBCMillionPeruL(value: v, unit: u); continue }
+          if let (v, u) = firstNumericAndUnit(in: row) {
+            out.rbcMillionPeruL = Convert.rbcToMillionPeruL(value: v, unit: u)
+            continue
+          }
         }
         if labelLocalized(label, hasAnyOf: ["hematocrit", "hct", "pcv", "ヘマトクリット"]) {
             if let (v, _) = firstNumericAndUnit(in: row) { out.hctPercent = v; continue }
         }
+        // WBC  → Convert.toThousandsPeruL
         if labelLocalized(label, hasAnyOf: ["wbc", "白血球"]) {
-            if let (v, u) = firstNumericAndUnit(in: row) { out.wbcThousandPeruL = toThousandsPeruL(value: v, unit: u); continue }
+          if let (v, u) = firstNumericAndUnit(in: row) {
+            out.wbcThousandPeruL = Convert.toThousandsPeruL(value: v, unit: u)
+            continue
+          }
         }
+        // PLT  → Convert.toThousandsPeruL
         if labelLocalized(label, hasAnyOf: ["platelet", "platelets", "血小板", "plt"]) {
-            if let (v, u) = firstNumericAndUnit(in: row) { out.pltThousandPeruL = toThousandsPeruL(value: v, unit: u); continue }
+          if let (v, u) = firstNumericAndUnit(in: row) {
+            out.pltThousandPeruL = Convert.toThousandsPeruL(value: v, unit: u)
+            continue
+          }
         }
 
         // --- Liver ---
@@ -296,13 +307,18 @@ private func parseFromDocumentText(_ document: DocumentObservation.Container) ->
 
     // Keep the useful CBC fallbacks; extend as needed:
     out.hgbPerdL = firstDouble(#"(?:(?:Hemoglobin(?:\s*\(Hb\))?)|HGB)[^0-9]{0,40}(\d{1,2}(?:[.,]\d)?)"#)
-    out.rbcMillionPeruL = firstDouble(#"(?:(?:Total\s*)?RBC(?:\s*COUNT)?)[^0-9]{0,40}(\d{1,3}(?:[.,]\d{1,3})?)"#)
-    out.hctPercent = firstDouble(#"(?:(?:Packed\s*Cell\s*Volume|PCV|Hematocrit|HCT))[^0-9]{0,40}(\d{1,2}(?:[.,]\d)?)"#)
-    if let wbcAbs = firstDouble(#"(?:(?:Total\s*)?WBC(?:\s*COUNT)?)[^0-9]{0,40}(\d{3,7})"#) {
-        out.wbcThousandPeruL = wbcAbs / 1000.0
+    if let r = firstDouble(#"(?:(?:Total\s*)?RBC(?:\s*COUNT)?)[^0-9]{0,40}(\d{1,3}(?:[.,]\d{1,3})?)"#) {
+      out.rbcMillionPeruL = Convert.rbcToMillionPeruL(value: r, unit: .unknown)
     }
+
+    out.hctPercent = firstDouble(#"(?:(?:Packed\s*Cell\s*Volume|PCV|Hematocrit|HCT))[^0-9]{0,40}(\d{1,2}(?:[.,]\d)?)"#)
+
+    if let wbcAbs = firstDouble(#"(?:(?:Total\s*)?WBC(?:\s*COUNT)?)[^0-9]{0,40}(\d{3,7})"#) {
+      out.wbcThousandPeruL = Convert.toThousandsPeruL(value: wbcAbs, unit: .per_uL)
+    }
+
     if let pltAbs = firstDouble(#"(?:Platelet(?:\s*Count)?)[^0-9]{0,40}(\d{4,8})"#) {
-        out.pltThousandPeruL = pltAbs / 1000.0
+      out.pltThousandPeruL = Convert.toThousandsPeruL(value: pltAbs, unit: .per_uL)
     }
     return out
 }
@@ -367,47 +383,17 @@ private func rowLabel(_ row: [DocumentObservation.Container.Table.Cell]) -> Stri
 /// - Parameters:
 ///   - row: The table row cells.
 ///   - startCol: Column index to start scanning for values (default 3).
-private func firstNumericAndUnit(in row: [DocumentObservation.Container.Table.Cell], startCol: Int = 3) -> (value: Double, unit: String)? {
-    let tail = Array(row.dropFirst(startCol))
-    for (i, cell) in tail.enumerated() {
-        let txt = cell.content.text.transcript
-        if let v = OCRParse.numbers(in: txt).first {
-            // Unit can be in same cell or next cell
-            let unitCandidates = [txt] + (i + 1 < tail.count ? [tail[i + 1].content.text.transcript] : [])
-            let unit = normalizedUnit(from: unitCandidates.joined(separator: " "))
-            return (v, unit)
-        }
+private func firstNumericAndUnit(in row: [DocumentObservation.Container.Table.Cell], startCol: Int = 3) -> (value: Double, unit: LabUnit)? {
+  let tail = Array(row.dropFirst(startCol))
+  for (i, cell) in tail.enumerated() {
+    let txt = cell.content.text.transcript
+    if let v = OCRParse.numbers(in: txt).first {
+      let nextTxt = (i + 1 < tail.count) ? tail[i + 1].content.text.transcript : ""
+      let unit = UnitDetector.detect(in: txt + " " + nextTxt)
+      return (v, unit)
     }
-    return nil
-}
-
-/// Normalizes raw unit text to standard tokens (mmHg, cm, kg, %, mg/dL, g/dL, U/L, CBC units).
-private func normalizedUnit(from s: String) -> String {
-    let t = s
-      .replacingOccurrences(of: "μ", with: "µ")
-      .replacingOccurrences(of: "∕", with: "/")
-      .replacingOccurrences(of: " ", with: "")
-      .replacingOccurrences(of: "　", with: "")
-      .replacingOccurrences(of: "\n", with: "")
-      .lowercased()
-
-    if t.contains("mmhg") || t.contains("mmig") { return "mmHg" }
-    if t.contains("cm") { return "cm" }
-    if t.contains("kg") { return "kg" }
-    if t.contains("%")  { return "%" }
-    if t.contains("10^6") || t.contains("mill") { return "10^6/µl" }
-    if t.contains("10^3") || t.contains("k/") || t.contains("10^9/l") { return "10^3/µl" }
-    if t.contains("/µl") || t.contains("/ul") || t.contains("cumm") { return "/µl" }
-    if t.contains("mg/dl") || t.contains("mg∕dl") { return "mg/dL" }
-    if t.contains("iu/l") || t.contains("u/l") { return "U/L" }
-    if t.contains("g/dl") { return "g/dL" }
-    if t.contains("万/µl") || t.contains("万/ul") { return "10^4/µL" }
-    if t.contains("千/µl") || t.contains("千/ul") { return "10^3/µL" }
-
-    // Also accept explicit 10^4 patterns (including superscript)
-    if t.contains("10^4/") || t.contains("10⁴/") { return "10^4/µL" }
-
-    return ""
+  }
+  return nil
 }
 
 /// Attempts to extract a (systolic, diastolic) pair by taking the last two plausible BP numbers in the row (30…250), ordering them as max/min.
@@ -426,72 +412,6 @@ private func plausibleBPValues(from row: [DocumentObservation.Container.Table.Ce
 private func labelLocalized(_ label: String, hasAnyOf keys: [String]) -> Bool {
     let low = label.lowercased()
     return keys.contains { low.contains($0) } || keys.contains { label.contains($0) }
-}
-
-// MARK: - Unit conversions (best-effort, safe defaults)
-
-/// Converts RBC absolute or 10^12/L to 10^6/µL.
-private func toRBCMillionPeruL(value v: Double, unit: String) -> Double {
-  let u = unit
-    .replacingOccurrences(of: "μ", with: "µ")
-    .lowercased()
-
-  if u.contains("10^6") { return v }            // already M/µL
-  if u.contains("10^4") { return v / 100.0 }    // 万/µL → ÷100
-  if u.contains("/µl") || u.contains("/ul") {   // absolute per µL → ÷1e6
-    return v / 1_000_000.0
-  }
-  // no unit? gentle heuristic: values > 50 look like 万/µL → ÷100
-  return v > 50 ? v / 100.0 : v
-}
-
-/// Converts WBC/PLT absolute counts to 10^3/µL if needed.
-private func toThousandsPeruL(value v: Double, unit: String) -> Double {
-  let u = unit
-    .replacingOccurrences(of: "μ", with: "µ")
-    .lowercased()
-
-  if u.contains("10^3") { return v }            // 千/µL
-  if u.contains("10^4") { return v * 10.0 }     // 万/µL → ×10
-  if u.contains("/µl") || u.contains("/ul") { return v / 1000.0 }
-  return v > 2000 ? (v / 1000.0) : v
-}
-
-/// Converts glucose mmol/L → mg/dL; cholesterol mmol/L → mg/dL; TG mmol/L → mg/dL.
-private func toGlucoseMgdl(value v: Double, unit: String) -> Double {
-    let u = unit.lowercased()
-    if u == "mg/dl" || u.isEmpty { return v }
-    if u == "mmol/l" { return v * 18.0 }
-    return v
-}
-
-private func toCholMgdl(value v: Double, unit: String) -> Double {
-    let u = unit.lowercased()
-    if u == "mg/dl" || u.isEmpty { return v }
-    if u == "mmol/l" { return v * 38.67 }
-    return v
-}
-
-private func toTgMgdl(value v: Double, unit: String) -> Double {
-    let u = unit.lowercased()
-    if u == "mg/dl" || u.isEmpty { return v }
-    if u == "mmol/l" { return v * 88.57 }
-    return v
-}
-
-/// Converts creatinine µmol/L → mg/dL; uric acid µmol/L → mg/dL.
-private func toCreatinineMgdl(value v: Double, unit: String) -> Double {
-    let u = unit.lowercased()
-    if u == "mg/dl" || u.isEmpty { return v }
-    if u == "µmol/l" || u == "umol/l" { return v / 88.4 }
-    return v
-}
-
-private func toUricAcidMgdl(value v: Double, unit: String) -> Double {
-    let u = unit.lowercased()
-    if u == "mg/dl" || u.isEmpty { return v }
-    if u == "µmol/l" || u == "umol/l" { return v / 59.48 }
-    return v
 }
 
 
@@ -603,33 +523,6 @@ private func parseQuasiTableFromLines(_ document: DocumentObservation.Container)
     var out = CheckupPatch()
     let lines = document.text.lines.map { $0.transcript }
 
-    func unitToken(_ s: String) -> String {
-        let t = s
-          .replacingOccurrences(of: "μ", with: "µ")
-          .replacingOccurrences(of: "∕", with: "/")
-          .replacingOccurrences(of: " ", with: "")
-          .replacingOccurrences(of: "　", with: "")
-          .replacingOccurrences(of: "\n", with: "")
-          .lowercased()
-
-        if t.contains("g/dl") { return "g/dL" }
-        if t.contains("mg/dl") || t.contains("mg∕dl") { return "mg/dL" }
-        if t.contains("mmhg") || t.contains("mmig") { return "mmHg" }
-        if t.contains("10^3") || t.contains("k/") || t.contains("10^9/l") { return "10^3/µl" }
-        if t.contains("10^6") || t.contains("mill") { return "10^6/µl" }
-        if t.contains("/µl") || t.contains("/ul") || t.contains("cumm") { return "/µl" }
-        if t.contains("%") { return "%" }
-        if t.contains("cm") { return "cm" }
-        if t.contains("kg") { return "kg" }
-        if t.contains("万/µl") || t.contains("万/ul") { return "10^4/µL" }
-        if t.contains("千/µl") || t.contains("千/ul") { return "10^3/µL" }
-
-        // Accept explicit 10^4 patterns
-        if t.contains("10^4/") || t.contains("10⁴/") { return "10^4/µL" }
-
-        return ""
-    }
-
     func norm(_ s: String) -> String {
         s.lowercased()
             .replacingOccurrences(of: " ", with: "")
@@ -638,69 +531,80 @@ private func parseQuasiTableFromLines(_ document: DocumentObservation.Container)
     }
     
     for (i, raw) in lines.enumerated() {
-        let lab = norm(raw)
-        // try to grab the current line’s numbers; if none, peek next line
-        var values = OCRParse.numbers(in: raw)
-        var unit = unitToken(raw)
-        if values.isEmpty, i + 1 < lines.count {
-            values = OCRParse.numbers(in: lines[i + 1])
-            if unit.isEmpty { unit = unitToken(lines[i + 1]) }
+      let lab = norm(raw)
+      var values = OCRParse.numbers(in: raw)
+      var unit = UnitDetector.detect(in: raw)
+
+      if values.isEmpty, i + 1 < lines.count {
+        values = OCRParse.numbers(in: lines[i + 1])
+        if unit == .unknown { unit = UnitDetector.detect(in: lines[i + 1]) }
+      }
+      guard let v = values.first else { continue }
+
+      // Anthropometrics
+      if lab.contains("身長") || lab.contains("height") {
+        if unit == .cm || unit == .unknown { out.heightCm = v }
+        continue
+      }
+      if lab.contains("体重") || lab.contains("weight") {
+        if unit == .kg || unit == .unknown { out.weightKg = v }
+        continue
+      }
+      if lab.contains("腹") || lab.contains("waist") {
+        if unit == .cm || unit == .unknown { out.waistCm = v }
+        continue
+      }
+      if lab.contains("bmi") { out.bmi = v; continue }
+      if lab.contains("体脂肪") || lab.contains("bodyfat") { out.fatPercent = v; continue }
+
+      // Blood pressure – find two plausible values near a BP label (unchanged)
+      if lab.contains("血圧") || lab.contains("bp") {
+        let more = (i + 1 < lines.count) ? OCRParse.numbers(in: lines[i + 1]) : []
+        let both = (values + more).filter { 30...250 ~= $0 }
+        if both.count >= 2 {
+          let sys = max(both[both.count - 1], both[both.count - 2])
+          let dia = min(both[both.count - 1], both[both.count - 2])
+          out.systolic = out.systolic ?? sys
+          out.diastolic = out.diastolic ?? dia
         }
-        guard let v = values.first else { continue }
-        
-        // Anthropometrics
-        if lab.contains("身長") || lab.contains("height") { if unit == "cm" || unit.isEmpty { out.heightCm = v }; continue }
-        if lab.contains("体重") || lab.contains("weight") { if unit == "kg" || unit.isEmpty { out.weightKg = v }; continue }
-        if lab.contains("腹") || lab.contains("waist") { if unit == "cm" || unit.isEmpty { out.waistCm = v }; continue }
-        if lab.contains("bmi") { out.bmi = v; continue }
-        if lab.contains("体脂肪") || lab.contains("bodyfat") { out.fatPercent = v; continue }
-        
-        // Blood pressure – look for two plausible values on this/next line
-        if lab.contains("血圧") || lab.contains("bp") {
-            let more = (i + 1 < lines.count) ? OCRParse.numbers(in: lines[i + 1]) : []
-            let both = (values + more).filter { 30...250 ~= $0 }
-            if both.count >= 2 {
-                let sys = max(both[both.count - 1], both[both.count - 2])
-                let dia = min(both[both.count - 1], both[both.count - 2])
-                out.systolic = out.systolic ?? sys
-                out.diastolic = out.diastolic ?? dia
-            }
-            continue
-        }
-        
-        // CBC
-        if lab.contains("hemoglobin") || lab.contains("hgb") || lab.contains("ヘモグロビン") { out.hgbPerdL = v; continue }
-        if lab.contains("rbc") || lab.contains("赤血球") {
-            out.rbcMillionPeruL = (unit.contains("10^12") ? v * 1000.0 : v) ; continue
-        }
-        if lab.contains("hematocrit") || lab.contains("hct") || lab.contains("pcv") || lab.contains("ヘマトクリット") { out.hctPercent = v; continue }
-        if lab.contains("wbc") || lab.contains("白血球") {
-            out.wbcThousandPeruL = (unit == "/µl" ? v / 1000.0 : v); continue
-        }
-        if lab.contains("platelet") || lab.contains("血小板") || lab.contains("plt") {
-            out.pltThousandPeruL = (unit == "/µl" ? v / 1000.0 : v); continue
-        }
-        
-        // Liver
-        if lab.contains("ast") || lab.contains("got") { out.ast = v; continue }
-        if lab.contains("alt") || lab.contains("gpt") { out.alt = v; continue }
-        if lab.contains("γ-gt") || lab.contains("ggt") || lab.contains("γgt") || lab.contains("γ-gtp") || lab.contains("γgtp") { out.ggt = v; continue }
-        if lab.contains("総蛋白") || lab.contains("総たんぱく") || lab.contains("totalprotein") || lab.contains("tp") { out.totalProtein = v; continue }
-        if lab.contains("アルブミン") || lab.contains("albumin") || lab.contains("alb") { out.albumin = v; continue }
-        
-        // Renal / urate
-        if lab.contains("creatinine") || lab.contains("クレアチニン") || lab.contains("cr") { out.creatinine = v; continue }
-        if lab.contains("尿酸") || lab.contains("uricacid") || lab.contains("ua") { out.uricAcid = v; continue }
-        
-        // Metabolism
-        if lab.contains("hba1c") || lab.contains("a1c") || lab.contains("ヘモグロビンa1c") { out.hba1cNgspPercent = v; continue }
-        if lab.contains("glucose") || lab.contains("空腹時血糖") || lab.contains("血糖") { out.fastingGlucoseMgdl = v; continue }
-        
-        // Lipids
-        if lab.contains("総コレステロール") || lab.contains("totalcholesterol") || lab.contains("tc") { out.totalChol = v; continue }
-        if lab.contains("hdl") || lab.contains("hdlコレステロール") { out.hdl = v; continue }
-        if lab.contains("ldl") || lab.contains("ldlコレステロール") { out.ldl = v; continue }
-        if lab.contains("中性脂肪") || lab.contains("トリグリセリド") || lab.contains("triglycerides") || lab.contains("tg") { out.triglycerides = v; continue }
+        continue
+      }
+
+      // CBC
+      if lab.contains("hemoglobin") || lab.contains("hgb") || lab.contains("ヘモグロビン") {
+        out.hgbPerdL = v; continue
+      }
+      if lab.contains("rbc") || lab.contains("赤血球") {
+        out.rbcMillionPeruL = Convert.rbcToMillionPeruL(value: v, unit: unit)
+        continue
+      }
+      if lab.contains("hematocrit") || lab.contains("hct") || lab.contains("pcv") || lab.contains("ヘマトクリット") {
+        out.hctPercent = v; continue
+      }
+      if lab.contains("wbc") || lab.contains("白血球") {
+        out.wbcThousandPeruL = Convert.toThousandsPeruL(value: v, unit: unit)
+        continue
+      }
+      if lab.contains("platelet") || lab.contains("血小板") || lab.contains("plt") {
+        out.pltThousandPeruL = Convert.toThousandsPeruL(value: v, unit: unit)
+        continue
+      }
+
+      // Liver / proteins / renal / metabolism / lipids: unchanged assignments
+      // (they don't need unit conversion in your sheets)
+      if lab.contains("ast") || lab.contains("got") { out.ast = v; continue }
+      if lab.contains("alt") || lab.contains("gpt") { out.alt = v; continue }
+      if lab.contains("γ-gt") || lab.contains("ggt") || lab.contains("γgt") || lab.contains("γ-gtp") || lab.contains("γgtp") { out.ggt = v; continue }
+      if lab.contains("総蛋白") || lab.contains("総たんぱく") || lab.contains("totalprotein") || lab.contains("tp") { out.totalProtein = v; continue }
+      if lab.contains("アルブミン") || lab.contains("albumin") || lab.contains("alb") { out.albumin = v; continue }
+      if lab.contains("creatinine") || lab.contains("クレアチニン") || lab.contains("cr") { out.creatinine = v; continue }
+      if lab.contains("尿酸") || lab.contains("uricacid") || lab.contains("ua") { out.uricAcid = v; continue }
+      if lab.contains("hba1c") || lab.contains("a1c") || lab.contains("ヘモグロビンa1c") { out.hba1cNgspPercent = v; continue }
+      if lab.contains("glucose") || lab.contains("空腹時血糖") || lab.contains("血糖") { out.fastingGlucoseMgdl = v; continue }
+      if lab.contains("総コレステロール") || lab.contains("totalcholesterol") || lab.contains("tc") { out.totalChol = v; continue }
+      if lab.contains("hdl") || lab.contains("hdlコレステロール") { out.hdl = v; continue }
+      if lab.contains("ldl") || lab.contains("ldlコレステロール") { out.ldl = v; continue }
+      if lab.contains("中性脂肪") || lab.contains("トリグリセリド") || lab.contains("triglycerides") || lab.contains("tg") { out.triglycerides = v; continue }
     }
     
     return out
@@ -769,110 +673,65 @@ func parseFromListsAndParagraphs(_ document: DocumentObservation.Container) -> C
          .replacingOccurrences(of: "\n", with: "")
     }
 
-    func numbers(_ s: String) -> [Double] {
-        let s2 = s.replacingOccurrences(of: ",", with: ".")
-        let re = try! NSRegularExpression(pattern: #"-?\d+(?:\.\d+)?"#)
-        let r = NSRange(s2.startIndex..., in: s2)
-        return re.matches(in: s2, range: r).compactMap { Range($0.range, in: s2).flatMap { Double(String(s2[$0])) } }
-    }
+    func numbers(_ s: String) -> [Double] { OCRParse.numbers(in: s) }
 
-    func unitToken(_ s: String) -> String {
-        let t = s
-          .replacingOccurrences(of: "μ", with: "µ")
-          .replacingOccurrences(of: "∕", with: "/")
-          .replacingOccurrences(of: " ", with: "")
-          .replacingOccurrences(of: "　", with: "")
-          .replacingOccurrences(of: "\n", with: "")
-          .lowercased()
-
-        if t.contains("mmhg") || t.contains("mmig") { return "mmHg" }
-        if t.contains("cm") { return "cm" }
-        if t.contains("kg") { return "kg" }
-        if t.contains("%")  { return "%" }
-        if t.contains("mg/dl") || t.contains("mg∕dl") { return "mg/dL" }
-        if t.contains("g/dl") { return "g/dL" }
-        if t.contains("iu/l") || t.contains("u/l") { return "U/L" }
-        if t.contains("10^6") || t.contains("mill") { return "10^6/µl" }
-        if t.contains("10^3") || t.contains("k/") || t.contains("10^9/l") { return "10^3/µl" }
-        if t.contains("/µl") || t.contains("/ul") || t.contains("cumm") { return "/µl" }
-        if t.contains("万/µl") || t.contains("万/ul") { return "10^4/µL" }
-        if t.contains("千/µl") || t.contains("千/ul") { return "10^3/µL" }
-
-        // Also accept explicit 10^4 patterns (including superscript)
-        if t.contains("10^4/") || t.contains("10⁴/") { return "10^4/µL" }
-
-        return ""
-    }
     // Prefer values near a “current” column marker if present
     // We just use text proximity; (geometry is optional and can be added later)
     let lines = document.text.lines.map(\.transcript)
     let normalized = lines.map(norm)
     // A quick helper that, given a set of label needles, searches forward a few lines
     // and returns the first numeric + unit it finds (preferring lines that also mention “今回”).
-    func takeValue(whenLabelHas anyOf: [String], lookahead: Int = 3) -> (Double, String)? {
-        // Find the first index of any label token
-        for i in 0..<normalized.count {
-            if anyOf.contains(where: { normalized[i].contains($0) }) {
-                // Search current line first, then up to N following lines
-                let end = min(i + lookahead, normalized.count - 1)
-                // 1) Try lines that also have "今回" (joined or split)
-                for j in i...end {
-                    let hasKonkai = normalized[j].contains("今回") || (normalized[j].contains("今") && normalized[j].contains("回"))
-                    if hasKonkai {
-                        let txt = lines[j]
-                        if let v = numbers(txt).first {
-                            return (v, unitToken(txt))
-                        }
-                    }
-                }
-                // 2) Otherwise take the first numeric we see in the window
-                for j in i...end {
-                    let txt = lines[j]
-                    if let v = numbers(txt).first {
-                        return (v, unitToken(txt))
-                    }
-                }
+    func takeValue(whenLabelHas anyOf: [String], lookahead: Int = 3) -> (Double, LabUnit)? {
+      for i in 0..<normalized.count {
+        if anyOf.contains(where: { normalized[i].contains($0) }) {
+          let end = min(i + lookahead, normalized.count - 1)
+          // Prefer lines with "今回"
+          for j in i...end {
+            let hasKonkai = normalized[j].contains("今回") || (normalized[j].contains("今") && normalized[j].contains("回"))
+            if hasKonkai {
+              let txt = lines[j]
+              if let v = numbers(txt).first {
+                return (v, UnitDetector.detect(in: txt))
+              }
             }
+          }
+          // Otherwise first numeric we see
+          for j in i...end {
+            let txt = lines[j]
+            if let v = numbers(txt).first {
+              return (v, UnitDetector.detect(in: txt))
+            }
+          }
         }
-        return nil
+      }
+      return nil
     }
+
     // --- Anthropometrics ---
     if let (v,u) = takeValue(whenLabelHas: ["身長","height"]) {
-        if u == "cm" || u.isEmpty { out.heightCm = v }
+      if u == .cm || u == .unknown { out.heightCm = v }
     }
     if let (v,u) = takeValue(whenLabelHas: ["体重","weight"]) {
-        if u == "kg" || u.isEmpty { out.weightKg = v }
+      if u == .kg || u == .unknown { out.weightKg = v }
     }
     if let (v,u) = takeValue(whenLabelHas: ["腹囲","腹","waist"]) {
-        if u == "cm" || u.isEmpty { out.waistCm = v }
+      if u == .cm || u == .unknown { out.waistCm = v }
     }
     if let (v,_) = takeValue(whenLabelHas: ["bmi","bm"]) { out.bmi = v }
     if let (v,_) = takeValue(whenLabelHas: ["体脂肪","bodyfat","fat%"]) { out.fatPercent = v }
-    // --- Blood pressure (try to find two plausible values close to a BP label) ---
-    if let bpAnchor = lines.firstIndex(where: { norm($0).contains("血圧") || norm($0).contains("bp") }) {
-        let end = min(bpAnchor + 4, lines.count - 1)
-        let windowVals = (bpAnchor...end)
-            .flatMap { numbers(lines[$0]) }
-            .filter { 30...250 ~= $0 }
-        if windowVals.count >= 2 {
-            let sys = max(windowVals[0], windowVals[1])
-            let dia = min(windowVals[0], windowVals[1])
-            out.systolic = sys
-            out.diastolic = dia
-        }
-    }
-    // --- CBC ---
-    if let (v,_) = takeValue(whenLabelHas: ["hemoglobin","hgb","ヘモグロビン"]) { out.hgbPerdL = v }
+
+    if let (v,_) = takeValue(whenLabelHas: ["hemoglobin","hgb","ヘモグロビン","血色素量"]) { out.hgbPerdL = v }
     if let (v,u) = takeValue(whenLabelHas: ["rbc","赤血球"]) {
-        out.rbcMillionPeruL = (u.contains("10^12") ? v * 1000.0 : v)
+      out.rbcMillionPeruL = Convert.rbcToMillionPeruL(value: v, unit: u)
     }
     if let (v,_) = takeValue(whenLabelHas: ["hematocrit","hct","pcv","ヘマトクリット"]) { out.hctPercent = v }
     if let (v,u) = takeValue(whenLabelHas: ["wbc","白血球"]) {
-        out.wbcThousandPeruL = (u == "/µl" ? v / 1000.0 : v)
+      out.wbcThousandPeruL = Convert.toThousandsPeruL(value: v, unit: u)
     }
     if let (v,u) = takeValue(whenLabelHas: ["platelet","plt","血小板"]) {
-        out.pltThousandPeruL = (u == "/µl" ? v / 1000.0 : v)
+      out.pltThousandPeruL = Convert.toThousandsPeruL(value: v, unit: u)
     }
+
     // --- Liver ---
     if let (v,_) = takeValue(whenLabelHas: ["ast","got","ａｓｔ"]) { out.ast = v }
     if let (v,_) = takeValue(whenLabelHas: ["alt","gpt","ａｌｔ"]) { out.alt = v }
