@@ -7,9 +7,20 @@
 
 import SwiftUI
 import SwiftData
+import StoreKit
 
 @main
 struct KenshinPlusApp: App {
+    init() {
+        Task {
+            for await result in Transaction.updates {
+                if case .verified(let transaction) = result {
+                    await transaction.finish()
+                }
+            }
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
             RootTabsView()
