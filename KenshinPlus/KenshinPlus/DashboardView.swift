@@ -40,6 +40,7 @@ struct DashboardView: View {
                 HStack(spacing: 20) {
                     NavigationLink(
                         destination: BloodPressureView(records: records)
+                            .navigationTitle("Blood Pressure Data")
                     ) {
                         DataAtGlanceContainerSmall(
                             title: "Blood Pressure",
@@ -51,6 +52,7 @@ struct DashboardView: View {
 
                     NavigationLink(
                         destination: BloodTestView(records: records) // for mockdata: destination: BloodTestView(data: mockBloodData)
+                            .navigationTitle("Blood Test Data")
                     ) {
                         DataAtGlanceContainerSmall(
                             title: "Blood Test",
@@ -65,6 +67,7 @@ struct DashboardView: View {
                 HStack(spacing: 20) {
                     NavigationLink(
                         destination: LiverTestView(records: records)
+                            .navigationTitle("Liver Test Data")
                     ) {
                         DataAtGlanceContainerSmall(
                             title: "Liver Info",
@@ -76,6 +79,7 @@ struct DashboardView: View {
                     
                     NavigationLink(
                         destination: KidneyTestView(records: records)
+                            .navigationTitle("Kidney Test Data")
                     ) {
                         DataAtGlanceContainerSmall(
                             title: "Uric Acid",
@@ -90,6 +94,7 @@ struct DashboardView: View {
                 HStack(spacing: 20) {
                     NavigationLink(
                         destination: MetabolicTestView(records: records)
+                            .navigationTitle("Metabolic Test Data")
                     ) {
                         DataAtGlanceContainerSmall(
                             title: "Metabolism",
@@ -101,6 +106,7 @@ struct DashboardView: View {
                     
                     NavigationLink(
                         destination: CholesterolTestView(records: records)
+                            .navigationTitle("Cholesterol Test Data")
                     ) {
                         DataAtGlanceContainerSmall(
                             title: "Cholesterol",
