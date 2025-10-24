@@ -9,6 +9,20 @@ import SwiftUI
 import SwiftData
 import CloudKit
 
+enum SheetRoute: Identifiable {
+    case tipJar
+    case web(URL)
+    
+    var id: String {
+        switch self {
+        case .tipJar:
+            return "tipJar"
+        case .web(let uRL):
+            return "web:\(uRL.absoluteString)"
+        }
+    }
+}
+
 struct SettingsView: View {
     @State private var isSectionDisabled = true
     @AppStorage("birthDateISO") private var birthDateISO: String = ""
@@ -18,6 +32,7 @@ struct SettingsView: View {
     @State private var showClearDialog = false
     @Environment(\.modelContext) private var modelContext
     @State private var showingTipJar = false
+    @State private var activeSheet: SheetRoute? = nil
 
     private var latestDate: String{
         guard let d = record.first?.date else{ return "No Data" }
@@ -37,6 +52,16 @@ struct SettingsView: View {
                 
                 appInfo
                 
+            }
+            .sheet(item: $activeSheet) { route in
+                switch route {
+                case .tipJar:
+                    TipJarSheet()
+                        .presentationDetents([.medium, .large])
+                case .web(let url):
+                    SafariView(url: url)
+                        .ignoresSafeArea()
+                }
             }
         }
     }
@@ -103,19 +128,24 @@ struct SettingsView: View {
                 Text(AppVersion.current)
                     .foregroundStyle(.secondary)
             }
-            
+
             Button {
-                showingTipJar = true
+                activeSheet = .tipJar
             } label: {
-                Label("Tip Jar", systemImage: "heart.circle.fill")
+                Label("Support Developer with a Tip", systemImage: "heart.circle.fill")
             }
-//            NavigationLink("Future Updates", destination: FutureUpdates())
+
+            NavigationLink {
+                ReachoutToDeveloper { url in
+                    activeSheet = .web(url)
+                }
+            } label: {
+                Label("Reach Out to Developer", systemImage: "lightbulb.fill")
+            }
+
+            //            NavigationLink("Future Updates", destination: FutureUpdates())
         } header: {
             Label("App Info", systemImage: "app.badge")
-        }
-        .sheet(isPresented: $showingTipJar) {
-            TipJarSheet()
-                .presentationDetents([.medium, .large]) // or .fullScreenCover if you prefer
         }
     }
     
