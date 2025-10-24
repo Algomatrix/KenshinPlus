@@ -17,7 +17,7 @@ struct SettingsView: View {
     private var record: [CheckupRecord]
     @State private var showClearDialog = false
     @Environment(\.modelContext) private var modelContext
-    
+    @State private var showingTipJar = false
 
     private var latestDate: String{
         guard let d = record.first?.date else{ return "No Data" }
@@ -103,9 +103,19 @@ struct SettingsView: View {
                 Text(AppVersion.current)
                     .foregroundStyle(.secondary)
             }
+            
+            Button {
+                showingTipJar = true
+            } label: {
+                Label("Tip Jar", systemImage: "heart.circle.fill")
+            }
 //            NavigationLink("Future Updates", destination: FutureUpdates())
         } header: {
             Label("App Info", systemImage: "app.badge")
+        }
+        .sheet(isPresented: $showingTipJar) {
+            TipJarSheet()
+                .presentationDetents([.medium, .large]) // or .fullScreenCover if you prefer
         }
     }
     
