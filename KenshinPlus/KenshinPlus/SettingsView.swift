@@ -140,7 +140,7 @@ struct SettingsView: View {
                     activeSheet = .web(url)
                 }
             } label: {
-                Label("Reach out to Developer", systemImage: "lightbulb.fill")
+                Label("Reach Out to Developer", systemImage: "lightbulb.fill")
             }
 
             //            NavigationLink("Future Updates", destination: FutureUpdates())
