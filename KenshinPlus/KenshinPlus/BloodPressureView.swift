@@ -9,17 +9,11 @@ import SwiftUI
 import Charts
 
 struct BloodPressureView: View {
-    var title: LocalizedStringResource
-    var subtitle: LocalizedStringResource
-    var symbol: String
-    var color: Color
     let records: [CheckupRecord]
 
 // MARK: Main body
     var body: some View {
         VStack {
-            mainLabelView
-                .frame(width: 150)
 
                 PutBarChartInContainer(title: "Systolic") {
                     systolicChart
@@ -33,12 +27,6 @@ struct BloodPressureView: View {
     }
 
 // MARK: Views of Main Body
-    private var mainLabelView: some View {
-        VStack {
-            Label(title, systemImage: symbol).foregroundStyle(color)
-            Text(subtitle).font(.caption)
-        }
-    }
     
     var systolicChart: some View {
         let systolic = records.metricSamples(\.systolic)
@@ -121,11 +109,5 @@ struct BloodPressureView: View {
         return r
     }
 
-    BloodPressureView(
-        title: "Blood Pressure",
-        subtitle: "Systolic and Diastolic",
-        symbol: "blood.pressure.cuff.badge.gauge.with.needle.fill",
-        color: .red,
-        records: recs
-    )
+    BloodPressureView(records: recs)
 }
