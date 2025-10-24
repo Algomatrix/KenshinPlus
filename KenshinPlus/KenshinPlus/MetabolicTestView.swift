@@ -49,8 +49,16 @@ struct MetabolicTestView: View {
                             .annotation(position: .automatic, alignment: .leading) {
                                 Text("6.5 %")
                                     .font(.caption)
-                                    .padding(.horizontal, 6).padding(.vertical, 2)
-                                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 6))
+                                    .foregroundStyle(.primary)
+                                    .padding(.horizontal, 6).padding(.vertical, 4)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .fill(Color(.secondarySystemBackground))
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(Color(.separator), lineWidth: 0.5)
+                                    )
                             }
                     }
                     
@@ -97,15 +105,23 @@ struct MetabolicTestView: View {
                             yStart: .value("Normal Min", 70),
                             yEnd: .value("Normal Max", 99)
                         )
-                        .foregroundStyle(.green.opacity(0.12))
-                        
+                        .foregroundStyle(.blue.opacity(0.12))
+
                         RuleMark(y: .value("Diabetes", 126))
-                            .lineStyle(.init(dash: [4,4]))
+                            .lineStyle(.init(dash: [4, 4]))
                             .annotation(position: .automatic, alignment: .leading) {
                                 Text("126 mg/dL")
                                     .font(.caption)
-                                    .padding(.horizontal, 6).padding(.vertical, 2)
-                                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 6))
+                                    .foregroundStyle(.primary)
+                                    .padding(.horizontal, 6).padding(.vertical, 4)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .fill(Color(.secondarySystemBackground))
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(Color(.separator), lineWidth: 0.5)
+                                    )
                             }
                     }
                     
