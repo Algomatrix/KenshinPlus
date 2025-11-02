@@ -43,11 +43,11 @@ struct LiverTestView: View {
                 PutBarChartInContainer(title: "AST(GOT)") {
                     Chart(astSeries) { entry in
                         LineMark (
-                            x: .value("Date", entry.date),
+                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
                             y: .value("AST(GOT)", entry.value)
                         )
                         .symbol(.circle)
-                        .interpolationMethod(.catmullRom)
+                        .interpolationMethod(.monotone)
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -56,11 +56,8 @@ struct LiverTestView: View {
                                 .offset(x: 8)
                         }
                     }
-                    .chartXAxis {
-                        AxisMarks {
-                            AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
-                        }
-                    }
+                    .chartXAxis { ChartAxis.axisAtDataDates(astSeries, date: \.date) }
+                    .chartScrollableAxes(.horizontal)
                     .overlay {
                         if astSeries.isEmpty {
                             NoChartDataView(systemImageName: "chart.line.text.clipboard.fill", title: "No Data", description: "There is no AST(GOT) data from App.")
@@ -71,11 +68,11 @@ struct LiverTestView: View {
                 PutBarChartInContainer(title: "ALT(GPT)") {
                     Chart(altSeries) { entry in
                         LineMark (
-                            x: .value("Date", entry.date),
+                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
                             y: .value("ALT(GPT)", entry.value)
                         )
                         .symbol(.circle)
-                        .interpolationMethod(.catmullRom)
+                        .interpolationMethod(.monotone)
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -84,11 +81,8 @@ struct LiverTestView: View {
                                 .offset(x: 8)
                         }
                     }
-                    .chartXAxis {
-                        AxisMarks {
-                            AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
-                        }
-                    }
+                    .chartXAxis { ChartAxis.axisAtDataDates(altSeries, date: \.date) }
+                    .chartScrollableAxes(.horizontal)
                     .overlay {
                         if altSeries.isEmpty {
                             NoChartDataView(systemImageName: "chart.line.text.clipboard.fill", title: "No Data", description: "There is no ALT(GPT) data from App.")
@@ -99,11 +93,11 @@ struct LiverTestView: View {
                 PutBarChartInContainer(title: "GGT") {
                     Chart(ggtSeries) { entry in
                         LineMark (
-                            x: .value("Date", entry.date),
+                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
                             y: .value("GGT", entry.value)
                         )
                         .symbol(.circle)
-                        .interpolationMethod(.catmullRom)
+                        .interpolationMethod(.monotone)
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -112,11 +106,8 @@ struct LiverTestView: View {
                                 .offset(x: 8)
                         }
                     }
-                    .chartXAxis {
-                        AxisMarks {
-                            AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
-                        }
-                    }
+                    .chartXAxis { ChartAxis.axisAtDataDates(ggtSeries, date: \.date) }
+                    .chartScrollableAxes(.horizontal)
                     .overlay {
                         if ggtSeries.isEmpty {
                             NoChartDataView(systemImageName: "chart.line.text.clipboard.fill", title: "No Data", description: "There is no GGT data from App.")
@@ -127,11 +118,11 @@ struct LiverTestView: View {
                 PutBarChartInContainer(title: "Total Protein") {
                     Chart(totalProteinSeries) { entry in
                         LineMark (
-                            x: .value("Date", entry.date),
+                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
                             y: .value("Total Protein", entry.value)
                         )
                         .symbol(.circle)
-                        .interpolationMethod(.catmullRom)
+                        .interpolationMethod(.monotone)
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -140,11 +131,8 @@ struct LiverTestView: View {
                                 .offset(x: 8)
                         }
                     }
-                    .chartXAxis {
-                        AxisMarks {
-                            AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
-                        }
-                    }
+                    .chartXAxis { ChartAxis.axisAtDataDates(totalProteinSeries, date: \.date) }
+                    .chartScrollableAxes(.horizontal)
                     .overlay {
                         if totalProteinSeries.isEmpty {
                             NoChartDataView(systemImageName: "chart.line.text.clipboard.fill", title: "No Data", description: "There is no Total Protein data from App.")
@@ -155,11 +143,11 @@ struct LiverTestView: View {
                 PutBarChartInContainer(title: "Albumin") {
                     Chart(albuminSeries) { entry in
                         LineMark (
-                            x: .value("Date", entry.date),
+                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
                             y: .value("Albumin", entry.value)
                         )
                         .symbol(.circle)
-                        .interpolationMethod(.catmullRom)
+                        .interpolationMethod(.monotone)
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -168,11 +156,8 @@ struct LiverTestView: View {
                                 .offset(x: 8)
                         }
                     }
-                    .chartXAxis {
-                        AxisMarks {
-                            AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
-                        }
-                    }
+                    .chartXAxis { ChartAxis.axisAtDataDates(albuminSeries, date: \.date) }
+                    .chartScrollableAxes(.horizontal)
                     .overlay {
                         if albuminSeries.isEmpty {
                             NoChartDataView(systemImageName: "chart.line.text.clipboard.fill", title: "No Data", description: "There is no Albumin data from App.")

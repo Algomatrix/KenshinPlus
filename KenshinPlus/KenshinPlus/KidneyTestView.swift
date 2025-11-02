@@ -10,10 +10,6 @@ import Charts
 
 struct KidneyTestView: View {
     let records: [CheckupRecord]
-
-    // Helpers for shaded band extent on X
-    private var startDate: Date? { records.map { $0.date }.min() }
-    private var endDate: Date? { records.map { $0.date }.max() }
     
     private var uricAcid: [MetricSample] {
         records.metricSamples(\.uricAcid)
@@ -30,25 +26,25 @@ struct KidneyTestView: View {
                 PutBarChartInContainer(title: "Uric Acid") {
                     Chart {
                         // Reference band for Uric Acid (3.6–7.0 mg/dL)
-                        if let start = startDate, let end = endDate, !uricAcid.isEmpty {
+                        if let (seriesStart, seriesEnd) = ChartAxis.bounds(uricAcid, date: \.date),
+                           !uricAcid.isEmpty {
                             RectangleMark(
-                                xStart: .value("Start", start),
-                                xEnd: .value("End", end),
+                                xStart: .value("Start", ChartAxis.startOfDay(seriesStart)),
+                                xEnd: .value("End", ChartAxis.startOfDay(seriesEnd)),
                                 yStart: .value("Uric Acid Min", 3.6),
                                 yEnd: .value("Uric Acid Max", 7.0)
                             )
-                            .foregroundStyle(.blue.opacity(0.12))
+                            .foregroundStyle(.green.opacity(0.12))
                         }
                         
                         // Line for Uric Acid
                         ForEach(uricAcid) { entry in
                             LineMark(
-                                x: .value("Date", entry.date),
+                                x: .value("Date", ChartAxis.startOfDay(entry.date)),
                                 y: .value("Uric Acid", entry.value)
                             )
-                            .foregroundStyle(.blue)
                             .symbol(.circle)
-                            .interpolationMethod(.catmullRom)
+                            .interpolationMethod(.monotone)
                         }
                     }
                     .chartYAxis {
@@ -58,11 +54,8 @@ struct KidneyTestView: View {
                                 .offset(x: 8)
                         }
                     }
-                    .chartXAxis {
-                        AxisMarks {
-                            AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
-                        }
-                    }
+                    .chartXAxis { ChartAxis.axisAtDataDates(uricAcid, date: \.date) }
+                    .chartScrollableAxes(.horizontal)
                     .overlay {
                         if uricAcid.isEmpty {
                             NoChartDataView(systemImageName: "vial.viewfinder", title: "No Data", description: "There is no Albumin data from App.")
@@ -74,10 +67,11 @@ struct KidneyTestView: View {
                 PutBarChartInContainer(title: "Creatinine") {
                     Chart {
                         // Reference band for Creatinine (0.6–1.1 mg/dL)
-                        if let start = startDate, let end = endDate, !creatinine.isEmpty {
+                        if let (seriesStart, seriesEnd) = ChartAxis.bounds(creatinine, date: \.date),
+                           !creatinine.isEmpty {
                             RectangleMark(
-                                xStart: .value("Start", start),
-                                xEnd: .value("End", end),
+                                xStart: .value("Start", ChartAxis.startOfDay(seriesStart)),
+                                xEnd: .value("End", ChartAxis.startOfDay(seriesEnd)),
                                 yStart: .value("Creatinine Min", 0.6),
                                 yEnd: .value("Creatinine Max", 1.1)
                             )
@@ -87,12 +81,11 @@ struct KidneyTestView: View {
                         // Line for Creatinine
                         ForEach(creatinine) { entry in
                             LineMark(
-                                x: .value("Date", entry.date),
+                                x: .value("Date", ChartAxis.startOfDay(entry.date)),
                                 y: .value("Creatinine", entry.value)
                             )
-                            .foregroundStyle(.green)
                             .symbol(.circle)
-                            .interpolationMethod(.catmullRom)
+                            .interpolationMethod(.monotone)
                         }
                     }
                     .chartYAxis {
@@ -102,11 +95,8 @@ struct KidneyTestView: View {
                                 .offset(x: 8)
                         }
                     }
-                    .chartXAxis {
-                        AxisMarks {
-                            AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
-                        }
-                    }
+                    .chartXAxis { ChartAxis.axisAtDataDates(creatinine, date: \.date) }
+                    .chartScrollableAxes(.horizontal)
                     .overlay {
                         if creatinine.isEmpty {
                             NoChartDataView(systemImageName: "vial.viewfinder", title: "No Data", description: "There is no Creatinine data from App.")

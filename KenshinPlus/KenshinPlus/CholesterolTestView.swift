@@ -10,10 +10,6 @@ import Charts
 
 struct CholesterolTestView: View {
     let records: [CheckupRecord]
-
-    // Helpers for shaded band extent on X
-    private var startDate: Date? { records.map { $0.date }.min() }
-    private var endDate: Date? { records.map { $0.date }.max() }
     
     private var totalCholesterolSeries: [MetricSample] {
         records.metricSamples(\.totalChol)
@@ -52,24 +48,24 @@ struct CholesterolTestView: View {
     var totalCholesterol: some View {
         PutBarChartInContainer(title: "Total Cholesterol") {
             Chart {
-                if let start = startDate, let end = endDate, !totalCholesterolSeries.isEmpty {
+                if let (seriesStart, seriesEnd) = ChartAxis.bounds(totalCholesterolSeries, date: \.date),
+                   !totalCholesterolSeries.isEmpty {
                     RectangleMark(
-                        xStart: .value("Start", start),
-                        xEnd: .value("End", end),
+                        xStart: .value("Start", ChartAxis.startOfDay(seriesStart)),
+                        xEnd:   .value("End",   ChartAxis.startOfDay(seriesEnd)),
                         yStart: .value("Cholesterol Min", 150),
-                        yEnd: .value("Cholesterol Max", 240)
+                        yEnd:   .value("Cholesterol Max", 240)
                     )
                     .foregroundStyle(.green.opacity(0.12))
                 }
                 
                 ForEach(totalCholesterolSeries) { entry in
                     LineMark(
-                        x: .value("Date", entry.date),
+                        x: .value("Date", ChartAxis.startOfDay(entry.date)),
                         y: .value("Total Cholesterol", entry.value)
                     )
-                    .foregroundStyle(.blue)
                     .symbol(.circle)
-                    .interpolationMethod(.catmullRom)
+                    .interpolationMethod(.monotone)
                 }
             }
             .chartYAxis {
@@ -79,12 +75,8 @@ struct CholesterolTestView: View {
                         .offset(x: 8)
                 }
             }
-            .chartXAxis {
-                AxisMarks {
-                    AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
-                }
-            }
-            .chartYAxisLabel("Total Cholesterol")
+            .chartXAxis { ChartAxis.axisAtDataDates(totalCholesterolSeries, date: \.date) }
+            .chartScrollableAxes(.horizontal)
             .overlay {
                 if totalCholesterolSeries.isEmpty {
                     NoChartDataView(systemImageName: "heart.circle", title: "No Data", description: "There is no Total Cholesterol data from App.")
@@ -97,12 +89,13 @@ struct CholesterolTestView: View {
     var LDL: some View {
         PutBarChartInContainer(title: "LDL") {
             Chart {
-                if let start = startDate, let end = endDate, !ldlSeries.isEmpty {
+                if let (seriesStart, seriesEnd) = ChartAxis.bounds(ldlSeries, date: \.date),
+                   !ldlSeries.isEmpty {
                     RectangleMark(
-                        xStart: .value("Start", start),
-                        xEnd: .value("End", end),
+                        xStart: .value("Start", ChartAxis.startOfDay(seriesStart)),
+                        xEnd:   .value("End",   ChartAxis.startOfDay(seriesEnd)),
                         yStart: .value("LDL Min", 70),
-                        yEnd: .value("LDL Max", 160)
+                        yEnd:   .value("LDL Max", 160)
                     )
                     .foregroundStyle(.green.opacity(0.12))
                 }
@@ -110,12 +103,11 @@ struct CholesterolTestView: View {
                 // Line for Creatinine
                 ForEach(ldlSeries) { entry in
                     LineMark(
-                        x: .value("Date", entry.date),
+                        x: .value("Date", ChartAxis.startOfDay(entry.date)),
                         y: .value("LDL", entry.value)
                     )
-                    .foregroundStyle(.blue)
                     .symbol(.circle)
-                    .interpolationMethod(.catmullRom)
+                    .interpolationMethod(.monotone)
                 }
             }
             .chartYAxis {
@@ -125,12 +117,8 @@ struct CholesterolTestView: View {
                         .offset(x: 8)
                 }
             }
-            .chartXAxis {
-                AxisMarks {
-                    AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
-                }
-            }
-            .chartYAxisLabel("LDL")
+            .chartXAxis { ChartAxis.axisAtDataDates(ldlSeries, date: \.date) }
+            .chartScrollableAxes(.horizontal)
             .overlay {
                 if ldlSeries.isEmpty {
                     NoChartDataView(systemImageName: "heart.circle", title: "No Data", description: "There is no LDL data from App.")
@@ -144,12 +132,13 @@ struct CholesterolTestView: View {
         PutBarChartInContainer(title: "HDL") {
             Chart {
                 // Reference band for Creatinine (0.6–1.1 mg/dL)
-                if let start = startDate, let end = endDate, !hdlSeries.isEmpty {
+                if let (seriesStart, seriesEnd) = ChartAxis.bounds(hdlSeries, date: \.date),
+                   !hdlSeries.isEmpty {
                     RectangleMark(
-                        xStart: .value("Start", start),
-                        xEnd: .value("End", end),
+                        xStart: .value("Start", ChartAxis.startOfDay(seriesStart)),
+                        xEnd:   .value("End",   ChartAxis.startOfDay(seriesEnd)),
                         yStart: .value("HDL Min", 35),
-                        yEnd: .value("HDL Max", 70)
+                        yEnd:   .value("HDL Max", 70)
                     )
                     .foregroundStyle(.green.opacity(0.12))
                 }
@@ -157,10 +146,9 @@ struct CholesterolTestView: View {
                 // Line for Creatinine
                 ForEach(hdlSeries) { entry in
                     LineMark(
-                        x: .value("Date", entry.date),
+                        x: .value("Date", ChartAxis.startOfDay(entry.date)),
                         y: .value("HDL", entry.value)
                     )
-                    .foregroundStyle(.blue)
                     .symbol(.circle)
                     .interpolationMethod(.catmullRom)
                 }
@@ -172,12 +160,8 @@ struct CholesterolTestView: View {
                         .offset(x: 8)
                 }
             }
-            .chartXAxis {
-                AxisMarks {
-                    AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
-                }
-            }
-            .chartYAxisLabel("HDL")
+            .chartXAxis { ChartAxis.axisAtDataDates(hdlSeries, date: \.date) }
+            .chartScrollableAxes(.horizontal)
             .overlay {
                 if hdlSeries.isEmpty {
                     NoChartDataView(systemImageName: "heart.circle", title: "No Data", description: "There is no HDL data from App.")
@@ -190,24 +174,24 @@ struct CholesterolTestView: View {
     var triglycerides: some View {
         PutBarChartInContainer(title: "Triglycerides") {
             Chart {
-                if let start = startDate, let end = endDate, !triglyceridesSeries.isEmpty {
+                if let (seriesStart, seriesEnd) = ChartAxis.bounds(triglyceridesSeries, date: \.date),
+                   !triglyceridesSeries.isEmpty {
                     RectangleMark(
-                        xStart: .value("Start", start),
-                        xEnd: .value("End", end),
+                        xStart: .value("Start", ChartAxis.startOfDay(seriesStart)),
+                        xEnd:   .value("End",   ChartAxis.startOfDay(seriesEnd)),
                         yStart: .value("Triglyceride Min", 80),
-                        yEnd: .value("Triglyceride Max", 200)
+                        yEnd:   .value("Triglyceride Max", 200)
                     )
                     .foregroundStyle(.green.opacity(0.12))
                 }
 
                 ForEach(triglyceridesSeries) { entry in
                     LineMark(
-                        x: .value("Date", entry.date),
+                        x: .value("Date", ChartAxis.startOfDay(entry.date)),
                         y: .value("Triglycerides", entry.value)
                     )
-                    .foregroundStyle(.blue)
                     .symbol(.circle)
-                    .interpolationMethod(.catmullRom)
+                    .interpolationMethod(.monotone)
                 }
             }
             .chartYAxis {
@@ -217,12 +201,8 @@ struct CholesterolTestView: View {
                         .offset(x: 8)
                 }
             }
-            .chartXAxis {
-                AxisMarks {
-                    AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
-                }
-            }
-            .chartYAxisLabel("Triglycerides")
+            .chartXAxis { ChartAxis.axisAtDataDates(totalCholesterolSeries, date: \.date) }
+            .chartScrollableAxes(.horizontal)
             .overlay {
                 if triglyceridesSeries.isEmpty {
                     NoChartDataView(systemImageName: "heart.circle", title: "No Data", description: "There is no Triglyceride data from App.")

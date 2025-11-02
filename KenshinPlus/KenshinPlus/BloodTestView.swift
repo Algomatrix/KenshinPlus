@@ -150,11 +150,11 @@ struct BloodTestView: View {
                 PutBarChartInContainer(title: "Red Blood Cell (RBC)")  {
                     Chart(rbcSeries) { entry in
                         LineMark (
-                            x: .value("Date", entry.date),
-                            y: .value("WBC", entry.value)
+                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
+                            y: .value("RBC", entry.value)
                         )
                         .symbol(.circle)
-                        .interpolationMethod(.catmullRom)
+                        .interpolationMethod(.monotone)
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -163,11 +163,8 @@ struct BloodTestView: View {
                                 .offset(x: 8)
                         }
                     }
-                    .chartXAxis {
-                        AxisMarks {
-                            AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
-                        }
-                    }
+                    .chartXAxis { ChartAxis.axisAtDataDates(rbcSeries, date: \.date) }
+                    .chartScrollableAxes(.horizontal)
                     .overlay {
                         if rbcSeries.isEmpty {
                             NoChartDataView(systemImageName: "drop.degreesign.slash", title: "No Data", description: "There is no RBC data from App.")
@@ -178,11 +175,11 @@ struct BloodTestView: View {
                 PutBarChartInContainer(title: "White Blood Cell (WBC)")  {
                     Chart(wbcSeries) { entry in
                         LineMark (
-                            x: .value("Date", entry.date),
-                            y: .value("RBC", entry.value)
+                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
+                            y: .value("WBC", entry.value)
                         )
                         .symbol(.circle)
-                        .interpolationMethod(.catmullRom)
+                        .interpolationMethod(.monotone)
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -191,11 +188,8 @@ struct BloodTestView: View {
                                 .offset(x: 8)
                         }
                     }
-                    .chartXAxis {
-                        AxisMarks {
-                            AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
-                        }
-                    }
+                    .chartXAxis { ChartAxis.axisAtDataDates(wbcSeries, date: \.date) }
+                    .chartScrollableAxes(.horizontal)
                     .overlay {
                         if wbcSeries.isEmpty {
                             NoChartDataView(systemImageName: "drop.degreesign.slash", title: "No Data", description: "There is no WBC data from App.")
@@ -206,11 +200,11 @@ struct BloodTestView: View {
                 PutBarChartInContainer(title: "Hemoglobin")  {
                     Chart(hgbSeries) { entry in
                         LineMark (
-                            x: .value("Date", entry.date),
+                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
                             y: .value("Hemoglobin", entry.value)
                         )
                         .symbol(.circle)
-                        .interpolationMethod(.catmullRom)
+                        .interpolationMethod(.monotone)
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -219,11 +213,8 @@ struct BloodTestView: View {
                                 .offset(x: 8)
                         }
                     }
-                    .chartXAxis {
-                        AxisMarks {
-                            AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
-                        }
-                    }
+                    .chartXAxis { ChartAxis.axisAtDataDates(hgbSeries, date: \.date) }
+                    .chartScrollableAxes(.horizontal)
                     .overlay {
                         if hgbSeries.isEmpty {
                             NoChartDataView(systemImageName: "drop.degreesign.slash", title: "No Data", description: "There is no Hemoglobin data from App.")
@@ -234,11 +225,11 @@ struct BloodTestView: View {
                 PutBarChartInContainer(title: "Hematocrit")  {
                     Chart(hctSeries) { entry in
                         LineMark (
-                            x: .value("Date", entry.date),
+                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
                             y: .value("Hematocrit", entry.value)
                         )
                         .symbol(.circle)
-                        .interpolationMethod(.catmullRom)
+                        .interpolationMethod(.monotone)
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -247,11 +238,8 @@ struct BloodTestView: View {
                                 .offset(x: 8)
                         }
                     }
-                    .chartXAxis {
-                        AxisMarks {
-                            AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
-                        }
-                    }
+                    .chartXAxis { ChartAxis.axisAtDataDates(hctSeries, date: \.date) }
+                    .chartScrollableAxes(.horizontal)
                     .overlay {
                         if hctSeries.isEmpty {
                             NoChartDataView(systemImageName: "drop.degreesign.slash", title: "No Data", description: "There is no Hematocrit data from App.")
@@ -262,11 +250,11 @@ struct BloodTestView: View {
                 PutBarChartInContainer(title: "Platelet")  {
                     Chart(pltSeries) { entry in
                         LineMark (
-                            x: .value("Date", entry.date),
-                            y: .value("Hematocrit", entry.value)
+                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
+                            y: .value("Platelet", entry.value)
                         )
                         .symbol(.circle)
-                        .interpolationMethod(.catmullRom)
+                        .interpolationMethod(.monotone)
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -275,11 +263,8 @@ struct BloodTestView: View {
                                 .offset(x: 8)
                         }
                     }
-                    .chartXAxis {
-                        AxisMarks {
-                            AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
-                        }
-                    }
+                    .chartXAxis { ChartAxis.axisAtDataDates(pltSeries, date: \.date) }
+                    .chartScrollableAxes(.horizontal)
                     .overlay {
                         if pltSeries.isEmpty {
                             NoChartDataView(systemImageName: "drop.degreesign.slash", title: "No Data", description: "There is no Platelet data from App.")

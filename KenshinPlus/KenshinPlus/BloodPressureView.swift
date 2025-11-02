@@ -14,27 +14,25 @@ struct BloodPressureView: View {
 // MARK: Main body
     var body: some View {
         VStack {
-
-                PutBarChartInContainer(title: "Systolic") {
-                    systolicChart
-                }
-
-                PutBarChartInContainer(title: "Diastolic") {
-                    diastolicChart
-                }
+            PutBarChartInContainer(title: "Systolic") {
+                systolicChart
+            }
+            
+            PutBarChartInContainer(title: "Diastolic") {
+                diastolicChart
+            }
         }
         .padding()
     }
 
 // MARK: Views of Main Body
-    
     var systolicChart: some View {
         let systolic = records.metricSamples(\.systolic)
 
         return Chart {
             ForEach(systolic) { bloodPressure in
                 LineMark (
-                    x: .value("Date", bloodPressure.date, unit: .day),
+                    x: .value("Date", ChartAxis.startOfDay(bloodPressure.date)),
                     y: .value("Systolic BP", bloodPressure.value)
                 )
                 .symbol(.circle)
@@ -42,11 +40,8 @@ struct BloodPressureView: View {
                 .foregroundStyle(Color.red)
             }
         }
-        .chartXAxis {
-            AxisMarks {
-                AxisValueLabel(format: .dateTime.month(.twoDigits).day())
-            }
-        }
+        .chartXAxis { ChartAxis.axisAtDataDates(systolic, date: \.date) }
+        .chartScrollableAxes(.horizontal)
         .chartYAxis {
             AxisMarks { value in
                 AxisGridLine()
@@ -69,19 +64,16 @@ struct BloodPressureView: View {
             ForEach(diastolic) { bloodPressure in
                 // Create two bars for each blood pressure sample
                 LineMark (
-                    x: .value("Date", bloodPressure.date, unit: .day),
-                    y: .value("Systolic BP", bloodPressure.value)
+                    x: .value("Date", ChartAxis.startOfDay(bloodPressure.date)),
+                    y: .value("Diastolic BP", bloodPressure.value)
                 )
                 .symbol(.circle)
                 .interpolationMethod(.catmullRom)
-                .foregroundStyle(Color.blue) // Systolic bar color
+                .foregroundStyle(Color.blue) // Diastolic bar color
             }
         }
-        .chartXAxis {
-            AxisMarks {
-                AxisValueLabel(format: .dateTime.month(.twoDigits).day())
-            }
-        }
+        .chartXAxis { ChartAxis.axisAtDataDates(diastolic, date: \.date) }
+        .chartScrollableAxes(.horizontal)
         .chartYAxis {
             AxisMarks { value in
                 AxisGridLine()

@@ -180,20 +180,73 @@ extension Bool {
 
     func mockBloodTest() -> BloodTestSample {
         return BloodTestSample(
-            rbc: Double.random(in: 4.0...6.0),      // million/µL
+            rbc: Double.random(in: 4.0...6.0),         // million/µL
             hemoglobin: Double.random(in: 12.0...16.0), // g/dL
             hematocrit: Double.random(in: 36.0...50.0), // %
             platelet: Double.random(in: 150...450),     // ×10³/µL
-            wbc: Double.random(in: 4.0...11.0)         // ×10³/µL
+            wbc: Double.random(in: 4.0...11.0)          // ×10³/µL
         )
     }
 
-    func mockBloodTestSeries(count: Int = 6) -> [(date: Date, sample: BloodTestSample)] {
+    /// Fixed-interval (weekly) test data
+    func mockBloodTestSeriesByWeek(count: Int = 6) -> [(date: Date, sample: BloodTestSample)] {
         let cal = Calendar.current
         return (0..<count).map { i in
             let date = cal.date(byAdding: .weekOfYear, value: -i, to: Date())!
             return (date, mockBloodTest())
         }.sorted { $0.date < $1.date }
+    }
+
+    /// Random but chronological dates
+    func mockBloodTestSeriesRandomDates(count: Int, withinDays: Int = 600) -> [Date] {
+        var dates: [Date] = []
+        var current = Date()
+        for _ in 0..<count {
+            let randomGap = Int.random(in: 5...60)
+            current = Calendar.current.date(byAdding: .day, value: -randomGap, to: current)!
+            dates.append(current)
+        }
+        return dates.sorted()
+    }
+
+    /// Random-dated blood test samples
+    func mockBloodTestSeriesRandom(count: Int = 6) -> [(date: Date, sample: BloodTestSample)] {
+        let randomDates = mockBloodTestSeriesRandomDates(count: count)
+        
+        // Combine each random date with a mock sample
+        let randomSeries = randomDates.map { date in
+            (date: date, sample: mockBloodTest())
+        }
+        
+        // Optional: print for debugging
+        for entry in randomSeries {
+            print("Date: \(entry.date), Hgb: \(entry.sample.hemoglobin)")
+        }
+        
+        // ✅ Return the generated series
+        return randomSeries.sorted { $0.date < $1.date }
+    }
+    
+    func randomChronologicalDates(count: Int, startYear: Int = 2020, endYear: Int = 2025) -> [Date] {
+        var dates: [Date] = []
+        let calendar = Calendar.current
+
+        for _ in 0..<count {
+            let year = Int.random(in: startYear...endYear)
+            let month = Int.random(in: 1...12)
+            let day = Int.random(in: 1...28) // safe for all months
+
+            var components = DateComponents()
+            components.year = year
+            components.month = month
+            components.day = day
+
+            if let date = calendar.date(from: components) {
+                dates.append(date)
+            }
+        }
+
+        return dates.sorted()
     }
 
     func mockLiverTest() -> LiverTestSample {
@@ -239,13 +292,8 @@ extension Bool {
     }
     
     func mockMetabolismTestSeries(count: Int = 6) -> [MetabolismTestSample] {
-        let cal = Calendar.current
-        let samples = (0..<count).map { i -> MetabolismTestSample in
-            let date = cal.date(byAdding: .month, value: -i, to: Date())!
-            return mockMetabolismTest(at: date)
-        }
-        // Ascending by date for nicer charts
-        return samples.sorted { $0.date < $1.date }
+        let randomDates = randomChronologicalDates(count: count)
+        return randomDates.map { mockMetabolismTest(at: $0) }
     }
     
     func mockCholesterolTest(at date: Date = Date()) -> CholesterolTestSample {
@@ -335,5 +383,99 @@ extension Double {
     func rounded(to places: Int = 0) -> Double {
         let p = pow(10.0, Double(places))
         return (self * p).rounded(.toNearestOrAwayFromZero) / p
+    }
+}
+
+extension MockDataForPreview {
+    /// Generate a single mock CheckupRecord with realistic combined values
+    func mockCheckupRecord(on date: Date = Date()) -> CheckupRecord {
+        let record = CheckupRecord()
+        record.date = date
+        
+        // Random anthropometrics
+        record.gender = Bool.random() ? .male : .female
+        record.heightCm = Double.random(in: 160...180).rounded(to: 1)
+        record.weightKg = Double.random(in: 55...80).rounded(to: 1)
+        record.fatPercent = Double.random(in: 10...25).rounded(to: 1)
+        record.waistCm = Double.random(in: 70...90).rounded(to: 1)
+        
+        // Blood pressure
+        let bp = mockSystolicBloodPressure().randomElement()!
+        record.systolic = bp.systolic
+        record.diastolic = bp.diastolic
+        
+        // Blood test (CBC)
+//        let cbc = mockBloodTest()
+//        record.rbcMillionPeruL = cbc.rbc
+//        record.hgbPerdL = cbc.hemoglobin
+//        record.hctPercent = cbc.hematocrit
+//        record.pltThousandPeruL = cbc.platelet
+//        record.wbcThousandPeruL = cbc.wbc
+        let cbcSeries = mockBloodTestSeriesRandom(count: 6)
+        if let randomEntry = cbcSeries.randomElement() {
+            let sample = randomEntry.sample
+            record.rbcMillionPeruL = sample.rbc
+            record.hgbPerdL = sample.hemoglobin
+            record.hctPercent = sample.hematocrit
+            record.pltThousandPeruL = sample.platelet
+            record.wbcThousandPeruL = sample.wbc
+        }
+        
+        // Liver test
+        let liver = mockLiverTest()
+        record.ast = liver.ast
+        record.alt = liver.alt
+        record.ggt = liver.ggt
+        record.totalProtein = liver.totalProtein
+        record.albumin = liver.albumin
+        
+        // Kidney test
+        let kidney = mockKidneyTest()
+        record.uricAcid = kidney.uricAcid
+        record.creatinine = kidney.creatinine
+        
+        // Metabolism
+        let meta = mockMetabolismTest(at: date)
+        record.hba1cNgspPercent = meta.hba1c
+        record.fastingGlucoseMgdl = meta.fastingGlucose
+        
+        // Lipids
+        let chol = mockCholesterolTest(at: date)
+        record.totalChol = chol.totalCholesterol
+        record.hdl = chol.hdl
+        record.ldl = chol.ldl
+        record.triglycerides = chol.triglycerides
+        
+        // Eye exam
+        let eye = mockEyeExam(on: date,
+                              includeRefraction: true,
+                              includeIOP: true,
+                              includeNear: Bool.random(probability: 0.4),
+                              includeIPD: Bool.random(probability: 0.3),
+                              includeColor: Bool.random(probability: 0.9))
+        record.uncorrectedAcuityRight = eye.uncorrectedRight
+        record.uncorrectedAcuityLeft = eye.uncorrectedLeft
+        record.correctedAcuityRight = eye.correctedRight
+        record.correctedAcuityLeft = eye.correctedLeft
+        record.refractionSphereRight = eye.refractionRight?.sphere
+        record.refractionCylinderRight = eye.refractionRight?.cylinder
+        record.refractionSphereLeft = eye.refractionLeft?.sphere
+        record.refractionCylinderLeft = eye.refractionLeft?.cylinder
+        record.iopRight = eye.iopRight
+        record.iopLeft = eye.iopLeft
+        record.nearAcuityBoth = eye.nearBothEyes
+        record.colorPlatesTotal = eye.colorPlatesTotal
+        record.colorPlatesCorrect = eye.colorPlatesCorrect
+
+        return record
+    }
+
+    /// Generate multiple mock CheckupRecords (e.g. for chart previews)
+    func mockCheckupRecordSeries(count: Int = 6) -> [CheckupRecord] {
+        let cal = Calendar.current
+        return (0..<count).map { i in
+            let date = cal.date(byAdding: .month, value: -i, to: Date())!
+            return mockCheckupRecord(on: date)
+        }.sorted { $0.date < $1.date }
     }
 }
