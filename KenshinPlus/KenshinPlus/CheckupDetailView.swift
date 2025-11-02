@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct CheckupDetailView: View {
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Bindable var record: CheckupRecord   // SwiftData magic
 
@@ -128,7 +129,10 @@ struct CheckupDetailView: View {
         .formStyle(.automatic)
         .navigationTitle("Checkup")
         .toolbar {
-            Button("Save") { try? modelContext.save() }
+            Button("Save") {
+                try? modelContext.save()
+                dismiss()
+            }
         }
     }
     

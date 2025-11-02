@@ -18,11 +18,7 @@ struct MetabolicTestView: View {
     private var glucoseSeries: [MetricSample] {
         records.metricSamples(\.fastingGlucoseMgdl)
     }
-    
-    var startDate: Date? { (hba1cSeries + glucoseSeries).map(\.date).min() }
-    var endDate: Date? { (hba1cSeries + glucoseSeries).map(\.date).max() }
-    
-    
+
     var body: some View {
         VStack {
             
@@ -33,11 +29,12 @@ struct MetabolicTestView: View {
                     .foregroundStyle(.secondary)
                 
                 Chart {
-                    if let s = startDate, let e = endDate {
+                    if let (seriesStart, seriesEnd) = ChartAxis.bounds(hba1cSeries, date: \.date),
+                       !hba1cSeries.isEmpty {
                         // Normal band ~4.0–5.6% (visual guide)
                         RectangleMark(
-                            xStart: .value("Start", s),
-                            xEnd: .value("End", e),
+                            xStart: .value("Start", seriesStart),
+                            xEnd: .value("End", seriesEnd),
                             yStart: .value("Normal Min", 4.0),
                             yEnd: .value("Normal Max", 5.6)
                         )
@@ -55,11 +52,11 @@ struct MetabolicTestView: View {
                     }
                     
                     ForEach(hba1cSeries) { s in
-                        LineMark(x: .value("Date", s.date),
+                        LineMark(x: .value("Date", ChartAxis.startOfDay(s.date)),
                                  y: .value("HbA1c", s.value)
                         )
                         .symbol(.circle)
-                        .interpolationMethod(.catmullRom)
+                        .interpolationMethod(.monotone)
                     }
                 }
                 .chartYAxis {
@@ -69,11 +66,8 @@ struct MetabolicTestView: View {
                             .offset(x: 8)
                     }
                 }
-                .chartXAxis {
-                    AxisMarks {
-                        AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
-                    }
-                }
+                .chartXAxis { ChartAxis.axisAtDataDates(hba1cSeries, date: \.date) }
+                .chartScrollableAxes(.horizontal)
                 .chartYAxisLabel("HbA1c (%)")
                 .overlay {
                     if hba1cSeries.isEmpty {
@@ -89,11 +83,12 @@ struct MetabolicTestView: View {
                     .foregroundStyle(.secondary)
                 
                 Chart {
-                    if let s = startDate, let e = endDate {
-                        // Normal band 70–99 mg/dL (visual guide)
+                    if let (seriesStart, seriesEnd) = ChartAxis.bounds(glucoseSeries, date: \.date),
+                       !glucoseSeries.isEmpty {
+                        // Normal band ~4.0–5.6% (visual guide)
                         RectangleMark(
-                            xStart: .value("Start", s),
-                            xEnd: .value("End", e),
+                            xStart: .value("Start", seriesStart),
+                            xEnd: .value("End", seriesEnd),
                             yStart: .value("Normal Min", 70),
                             yEnd: .value("Normal Max", 99)
                         )
@@ -110,11 +105,11 @@ struct MetabolicTestView: View {
                     }
                     
                     ForEach(glucoseSeries) { s in
-                        LineMark(x: .value("Date", s.date),
+                        LineMark(x: .value("Date", ChartAxis.startOfDay(s.date)),
                                  y: .value("Glucose", s.value)
                         )
                         .symbol(.circle)
-                        .interpolationMethod(.catmullRom)
+                        .interpolationMethod(.monotone)
                     }
                 }
                 .chartYAxis {
@@ -124,11 +119,8 @@ struct MetabolicTestView: View {
                             .offset(x: 8)
                     }
                 }
-                .chartXAxis {
-                    AxisMarks {
-                        AxisValueLabel(format: .dateTime.year(.twoDigits).month(.twoDigits).day())
-                    }
-                }
+                .chartXAxis { ChartAxis.axisAtDataDates(glucoseSeries, date: \.date) }
+                .chartScrollableAxes(.horizontal)
                 .chartYAxisLabel("Fating Glucose (mg/dL)")
                 .overlay {
                     if glucoseSeries.isEmpty {
