@@ -3,8 +3,6 @@
 A **privacy-first iOS app** for tracking health checkup results, visualizing trends, and importing values from paper or PDF using on-device OCR.  
 Built entirely with **SwiftUI**, **SwiftData**, and **Vision**, following Apple’s Human Interface Guidelines — no external servers, no tracking.
 
-![KenshinPlus Banner](docs/images/banner.png)
-
 > 🛡 **Privacy First** — All data stays on your device.  
 > ☁ Optional sync with iCloud using your Apple ID.  
 > 📱 100% native Swift implementation.
