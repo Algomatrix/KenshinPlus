@@ -169,6 +169,11 @@ struct DashboardView: View {
                         }
                     }
                 }
+
+                Text("Disclaimer: This app does not provide medical diagnosis or treatment advice. Always consult your doctor for any medical concerns.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
             }
             .navigationTitle("Health Dashboard")
             .padding()
