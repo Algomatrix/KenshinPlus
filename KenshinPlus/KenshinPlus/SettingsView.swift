@@ -129,11 +129,12 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Button {
-                activeSheet = .tipJar
-            } label: {
-                Label("Support Developer with a Tip", systemImage: "heart.circle.fill")
-            }
+            // Next version
+//            Button {
+//                activeSheet = .tipJar
+//            } label: {
+//                Label("Support Developer with a Tip", systemImage: "heart.circle.fill")
+//            }
 
             NavigationLink {
                 ReachoutToDeveloper { url in
@@ -144,6 +145,18 @@ struct SettingsView: View {
             }
 
             //            NavigationLink("Future Updates", destination: FutureUpdates())
+            
+            Text("""
+                        Health reference ranges and interpretations shown in Kenshin Plus+ are based on reputable public sources:
+
+                        - Japanese Ministry of Health, Labour and Welfare: “Health Checkup and Guidance Program” (特定健診基準)
+                        - World Health Organization (WHO) guidelines for blood lipid and glucose reference ranges
+
+                        Disclaimer: Kenshin Plus+ is for informational purposes only and does not provide medical diagnosis or treatment advice. Always consult a qualified healthcare professional before making medical decisions.
+                        """)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.leading)
         } header: {
             Label("App Info", systemImage: "app.badge")
         }
