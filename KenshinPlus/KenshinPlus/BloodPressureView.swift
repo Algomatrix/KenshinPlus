@@ -10,6 +10,7 @@ import Charts
 
 struct BloodPressureView: View {
     let records: [CheckupRecord]
+    private let citation = HealthCitationLibrary.bloodPressure
 
 // MARK: Main body
     var body: some View {
@@ -23,6 +24,11 @@ struct BloodPressureView: View {
             }
         }
         .padding()
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                CitationInfoButton(citation: citation)
+            }
+        }
     }
 
 // MARK: Views of Main Body

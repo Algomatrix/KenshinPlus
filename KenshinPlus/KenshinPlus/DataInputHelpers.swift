@@ -30,16 +30,42 @@ enum WeightUnit: String, CaseIterable, Identifiable {
 
 struct PutBarChartInContainer<Content: View>: View {
     let title: LocalizedStringResource?
+    let citation: HealthCitation?
     @ViewBuilder var content: () -> Content
+
+    init(
+        title: LocalizedStringResource?,
+        citation: HealthCitation? = nil,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.title = title
+        self.citation = citation
+        self.content = content
+    }
+
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color(.secondarySystemBackground))
-            VStack {
-                if let title {
-                    Text(title)
-                        .padding()
+
+            VStack(alignment: .leading, spacing: 0) {
+                if title != nil || citation != nil {
+                    HStack {
+                        if let title {
+                            Text(title)
+                                .font(.headline)
+                        }
+
+                        Spacer()
+
+                        if let citation {
+                            CitationInfoButton(citation: citation)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top)
                 }
+
                 content()
                     .padding()
             }

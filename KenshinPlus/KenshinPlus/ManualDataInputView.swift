@@ -97,14 +97,18 @@ struct ManualDataInputView: View {
                     )
                 }
                 
-                PutBarChartInContainer(title: "Blood Pressure") {
+                PutBarChartInContainer(title: "Blood Pressure",
+                                       citation: HealthCitationLibrary.bloodPressure
+                ) {
                     ManualDataBloodPressure(
                         systolic: $systolic,
                         diastolic: $diastolic
                     )
                 }
 
-                PutBarChartInContainer(title: "Blood Test") {
+                PutBarChartInContainer(title: "Blood Test",
+                                       citation: HealthCitationLibrary.bloodTest
+                ) {
                     ManualDataBloodTest(
                         gender: $gender,
                         rbc: $rbcMillionPeruL,
@@ -115,7 +119,9 @@ struct ManualDataInputView: View {
                     )
                 }
 
-                PutBarChartInContainer(title: "Liver Function") {
+                PutBarChartInContainer(title: "Liver Function",
+                                       citation: HealthCitationLibrary.liver
+                ) {
                     ManualDataLiverFunction(
                         gender: $gender,
                         ast: $ast,
@@ -126,7 +132,9 @@ struct ManualDataInputView: View {
                     )
                 }
                 
-                PutBarChartInContainer(title: "Creatinine and Uric Acid") {
+                PutBarChartInContainer(title: "Creatinine and Uric Acid",
+                                       citation: HealthCitationLibrary.kidney
+                ) {
                     ManualDataRenalUrate(
                         gender: $gender,
                         creatinine: $creatinine,
@@ -134,14 +142,18 @@ struct ManualDataInputView: View {
                     )
                 }
                 
-                PutBarChartInContainer(title: "Metabolism") {
+                PutBarChartInContainer(title: "Metabolism",
+                                       citation: HealthCitationLibrary.metabolism
+                ) {
                     ManualDataMetabolism(
                         fastingGlucoseMgdl: $fastingBloodGlucose,
                         hba1cPercent: $hbA1c
                     )
                 }
                 
-                PutBarChartInContainer(title: "Lipid Data") {
+                PutBarChartInContainer(title: "Lipid Data",
+                                       citation: HealthCitationLibrary.cholesterol
+                ) {
                     ManualDataLipids(gender: $gender, totalCholesterol: $totalCholesterol, hdl: $hdl, ldl: $ldl, triglycerides: $triglycerides)
                 }
                 
@@ -419,8 +431,14 @@ struct ManualDataBasicInfoArea: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Basic Info")
-                .font(.title3).bold()
+            HStack {
+                Text("Basic Info")
+                    .font(.title3).bold()
+
+                Spacer()
+
+                CitationInfoButton(citation: HealthCitationLibrary.bodyComposition)
+            }
             
             HStack {
                 Image(systemName: "calendar")

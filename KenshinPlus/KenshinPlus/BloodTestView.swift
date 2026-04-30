@@ -10,6 +10,7 @@ import Charts
 
 struct BloodTestView: View {
     let records: [CheckupRecord]
+    private let citation = HealthCitationLibrary.bloodTest
     
     private func colorFor(value: Double, normal: ClosedRange<Double>) -> Color {
         if value < normal.lowerBound { return .orange }
@@ -273,6 +274,11 @@ struct BloodTestView: View {
                 }
             }
             .padding()
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                CitationInfoButton(citation: citation)
+            }
         }
     }
 }

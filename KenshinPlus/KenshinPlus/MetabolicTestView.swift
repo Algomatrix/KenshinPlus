@@ -10,6 +10,7 @@ import Charts
 
 struct MetabolicTestView: View {
     let records: [CheckupRecord]
+    private let citation = HealthCitationLibrary.metabolism
     
     private var hba1cSeries: [MetricSample] {
         records.metricSamples(\.hba1cNgspPercent)
@@ -130,6 +131,11 @@ struct MetabolicTestView: View {
             }
         }
         .padding()
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                CitationInfoButton(citation: citation)
+            }
+        }
     }
 }
 
