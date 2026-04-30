@@ -10,6 +10,7 @@ import Charts
 
 struct KidneyTestView: View {
     let records: [CheckupRecord]
+    private let citation = HealthCitationLibrary.kidney
     
     private var uricAcid: [MetricSample] {
         records.metricSamples(\.uricAcid)
@@ -105,6 +106,11 @@ struct KidneyTestView: View {
                 }
             }
             .padding()
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                CitationInfoButton(citation: citation)
+            }
         }
     }
 }

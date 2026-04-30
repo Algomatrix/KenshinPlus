@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct DataAtGlanceContainerSmall: View {
-    
     var title: LocalizedStringResource
     var symbol: String
     var subtitle: String
@@ -16,22 +15,35 @@ struct DataAtGlanceContainerSmall: View {
 
     var body: some View {
         VStack {
-            mainLabelView
-                .frame(width: 150)
+            VStack(spacing: 8) {
+                HStack(alignment: .firstTextBaseline, spacing: 5) {
+                    HStack(alignment: .center, spacing: 6) {
+                        Image(systemName: symbol)
+                            .foregroundStyle(color)
+
+                        Text(title)
+                            .foregroundStyle(color)
+                            .font(.subheadline)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
+
+                    Spacer(minLength: 4)
+                }
+
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(width: 150)
         }
         .padding()
-        .background(RoundedRectangle(cornerRadius: 12, style: .circular).fill(Color(.secondarySystemBackground)))
-    }
-    
-    var mainLabelView: some View {
-        VStack {
-            Label(title, systemImage: symbol)
-                .foregroundStyle(color)
-                .frame(alignment: .leading)
-            
-            Text(subtitle)
-                .font(.caption)
-        }
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .circular)
+                .fill(Color(.secondarySystemBackground))
+        )
     }
 }
 
@@ -39,6 +51,20 @@ struct DataAtGlanceContainerSmall: View {
     DataAtGlanceContainerSmall(title: "Body Weight", symbol: "figure", subtitle: "80 Kg", color: .indigo)
     DataHoldingContainer(title: "RBC") {
         HalfDonutChartView(value: 40, maxValue: 120)
+    }
+    CitedDashboardCard(citation: HealthCitationLibrary.cholesterol) {
+        NavigationLink(
+            destination: CholesterolTestView(records: [])
+                .navigationTitle("Cholesterol Test Data")
+        ) {
+            DataAtGlanceContainerSmall(
+                title: "Cholesterol",
+                symbol: "heart.circle",
+                subtitle: String(localized: "HDL, LDL, etc"),
+                color: .orange
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
 

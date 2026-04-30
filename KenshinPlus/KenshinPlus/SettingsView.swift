@@ -144,19 +144,32 @@ struct SettingsView: View {
                 Label("Reach Out to Developer", systemImage: "lightbulb.fill")
             }
 
-            //            NavigationLink("Future Updates", destination: FutureUpdates())
+            NavigationLink {
+                HealthSourcesView()
+            } label: {
+                Label("Health Information Sources", systemImage: "book.pages")
+            }
             
-            Text("""
-                        Health reference ranges and interpretations shown in Kenshin Plus+ are based on reputable public sources:
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Medical Disclaimer")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
 
-                        - Japanese Ministry of Health, Labour and Welfare: “Health Checkup and Guidance Program” (特定健診基準)
-                        - World Health Organization (WHO) guidelines for blood lipid and glucose reference ranges
+                Text("Kenshin Plus+ provides wellness tracking and health information for informational purposes only. It does not provide medical diagnosis, treatment, or emergency guidance. Always consult a qualified healthcare professional for medical concerns.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
 
-                        Disclaimer: Kenshin Plus+ is for informational purposes only and does not provide medical diagnosis or treatment advice. Always consult a qualified healthcare professional before making medical decisions.
-                        """)
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-            .multilineTextAlignment(.leading)
+                Text("Source Information")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .padding(.top, 4)
+
+                Text("Source citations for health metrics, reference ranges, and interpretations are available from the info buttons shown throughout the dashboard and related detail screens.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            //            NavigationLink("Future Updates", destination: FutureUpdates())
         } header: {
             Label("App Info", systemImage: "app.badge")
         }
@@ -277,6 +290,35 @@ struct CloudStatusRow: View {
         case .noAccount, .restricted, .temporarilyUnavailable: return .orange
         default: return .secondary
         }
+    }
+}
+
+struct HealthSourcesView: View {
+    var body: some View {
+        List {
+            Section("About these sources") {
+                Text("Kenshin Plus+ shows source citations throughout the app using info buttons near health metrics and detail views. This page provides a summary of major public references used in the app.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("General References") {
+                Link("CDC - Body Mass Index (BMI)", destination: URL(string: "https://www.cdc.gov/bmi/about/index.html")!)
+                Link("MedlinePlus - Body Weight", destination: URL(string: "https://medlineplus.gov/bodyweight.html")!)
+                Link("American Heart Association - Blood Pressure Readings", destination: URL(string: "https://www.heart.org/en/health-topics/high-blood-pressure/understanding-blood-pressure-readings")!)
+                Link("MedlinePlus - Complete Blood Count (CBC)", destination: URL(string: "https://medlineplus.gov/lab-tests/complete-blood-count-cbc/")!)
+                Link("NIDDK - Kidney Disease Tests and Diagnosis", destination: URL(string: "https://www.niddk.nih.gov/health-information/kidney-disease/chronic-kidney-disease-ckd/tests-diagnosis")!)
+                Link("CDC - A1C Test", destination: URL(string: "https://www.cdc.gov/diabetes/diabetes-testing/prediabetes-a1c-test.html")!)
+                Link("MedlinePlus - Cholesterol Levels", destination: URL(string: "https://medlineplus.gov/lab-tests/cholesterol-levels/")!)
+            }
+
+            Section("Disclaimer") {
+                Text("Kenshin Plus+ is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .navigationTitle("Health Sources")
     }
 }
 

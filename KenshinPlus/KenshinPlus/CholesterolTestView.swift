@@ -10,7 +10,8 @@ import Charts
 
 struct CholesterolTestView: View {
     let records: [CheckupRecord]
-    
+    private let citation = HealthCitationLibrary.cholesterol
+
     private var totalCholesterolSeries: [MetricSample] {
         records.metricSamples(\.totalChol)
     }
@@ -40,6 +41,11 @@ struct CholesterolTestView: View {
                 triglycerides
             }
             .padding()
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                CitationInfoButton(citation: citation)
+            }
         }
     }
 

@@ -28,92 +28,134 @@ struct DashboardView: View {
         NavigationStack {
             ScrollView {
                 HStack(spacing: 20) {
-                    DataAtGlanceContainerSmall(title: "Body Weight", symbol: "figure", subtitle: latestWeightText, color: .indigo)
-                    DataAtGlanceContainerSmall(title: "Body Fat", symbol: "figure.walk", subtitle: latestFatPercentText, color: .indigo)
-                }
-
-                HStack(spacing: 20) {
-                    DataAtGlanceContainerSmall(title: "BMI", symbol: "figure", subtitle: latestBmiText, color: .mint)
-                    DataAtGlanceContainerSmall(title: "Height", symbol: "ruler", subtitle: latestHeightText, color: .mint)
-                }
-
-                HStack(spacing: 20) {
-                    NavigationLink(
-                        destination: BloodPressureView(records: records)
-                            .navigationTitle("Blood Pressure Data")
-                    ) {
+                    CitedDashboardCard(citation: HealthCitationLibrary.bodyWeight) {
                         DataAtGlanceContainerSmall(
-                            title: "Blood Pressure",
-                            symbol: "blood.pressure.cuff.badge.gauge.with.needle.fill",
-                            subtitle: String(localized: "Systolic and Diastolic"),
-                            color: .red
+                            title: "Body Weight",
+                            symbol: "figure",
+                            subtitle: latestWeightText,
+                            color: .indigo
                         )
                     }
-
-                    NavigationLink(
-                        destination: BloodTestView(records: records) // for mockdata: destination: BloodTestView(data: mockCheckupRecords)
-                            .navigationTitle("Blood Test Data")
-                    ) {
+                    
+                    CitedDashboardCard(citation: HealthCitationLibrary.bodyFat) {
                         DataAtGlanceContainerSmall(
-                            title: "Blood Test",
-                            symbol: "syringe.fill",
-                            subtitle: String(localized: "RBC, WBC, etc"),
-                            color: .red
+                            title: "Body Fat",
+                            symbol: "figure.walk",
+                            subtitle: latestFatPercentText,
+                            color: .indigo
                         )
+                    }
+                }
+
+                HStack(spacing: 20) {
+                    CitedDashboardCard(citation: HealthCitationLibrary.bmi) {
+                        DataAtGlanceContainerSmall(
+                            title: "BMI",
+                            symbol: "figure",
+                            subtitle: latestBmiText,
+                            color: .mint
+                        )
+                    }
+                    
+                    CitedDashboardCard(citation: HealthCitationLibrary.height) {
+                        DataAtGlanceContainerSmall(
+                            title: "Height",
+                            symbol: "ruler",
+                            subtitle: latestHeightText,
+                            color: .mint
+                        )
+                    }
+                }
+                
+                HStack(spacing: 20) {
+                    CitedDashboardCard(citation: HealthCitationLibrary.bloodPressure) {
+                        NavigationLink(
+                            destination: BloodPressureView(records: records)
+                                .navigationTitle("Blood Pressure Data")
+                        ) {
+                            DataAtGlanceContainerSmall(
+                                title: "Blood Pressure",
+                                symbol: "blood.pressure.cuff.badge.gauge.with.needle.fill",
+                                subtitle: String(localized: "Systolic and Diastolic"),
+                                color: .red
+                            )
+                        }
+                    }
+                    
+                    CitedDashboardCard(citation: HealthCitationLibrary.bloodTest) {
+                        NavigationLink(
+                            destination: BloodTestView(records: records)
+                                .navigationTitle("Blood Test Data")
+                        ) {
+                            DataAtGlanceContainerSmall(
+                                title: "Blood Test",
+                                symbol: "syringe.fill",
+                                subtitle: String(localized: "RBC, WBC, etc"),
+                                color: .red
+                            )
+                        }
                     }
                 }
                 
                 // Liver and Uric Acid
                 HStack(spacing: 20) {
-                    NavigationLink(
-                        destination: LiverTestView(records: records)
-                            .navigationTitle("Liver Test Data")
-                    ) {
-                        DataAtGlanceContainerSmall(
-                            title: "Liver Info",
-                            symbol: "chart.line.text.clipboard.fill",
-                            subtitle: String(localized: "AST, ALT, etc"),
-                            color: .red
-                        )
+                    CitedDashboardCard(citation: HealthCitationLibrary.liver) {
+                        NavigationLink(
+                            destination: LiverTestView(records: records)
+                                .navigationTitle("Liver Test Data")
+                        ) {
+                            DataAtGlanceContainerSmall(
+                                title: "Liver Info",
+                                symbol: "chart.line.text.clipboard.fill",
+                                subtitle: String(localized: "AST, ALT, etc"),
+                                color: .red
+                            )
+                        }
                     }
                     
-                    NavigationLink(
-                        destination: KidneyTestView(records: records)
-                            .navigationTitle("Kidney Test Data")
-                    ) {
-                        DataAtGlanceContainerSmall(
-                            title: "Uric Acid",
-                            symbol: "vial.viewfinder",
-                            subtitle: String(localized: "Creatinine and Uric Acid"),
-                            color: .red
-                        )
+                    CitedDashboardCard(citation: HealthCitationLibrary.kidney) {
+                        NavigationLink(
+                            destination: KidneyTestView(records: records)
+                                .navigationTitle("Kidney Test Data")
+                        ) {
+                            DataAtGlanceContainerSmall(
+                                title: "Uric Acid",
+                                symbol: "vial.viewfinder",
+                                subtitle: String(localized: "Creatinine and Uric Acid"),
+                                color: .red
+                            )
+                        }
                     }
                 }
                 
                 // Metabolism and Cholesterol
                 HStack(spacing: 20) {
-                    NavigationLink(
-                        destination: MetabolicTestView(records: records)
-                            .navigationTitle("Metabolic Test Data")
-                    ) {
-                        DataAtGlanceContainerSmall(
-                            title: "Metabolism",
-                            symbol: "flame.fill",
-                            subtitle: String(localized: "HbA1c, Fasting Glucose"),
-                            color: .orange
-                        )
+                    CitedDashboardCard(citation: HealthCitationLibrary.metabolism) {
+                        NavigationLink(
+                            destination: MetabolicTestView(records: records)
+                                .navigationTitle("Metabolic Test Data")
+                        ) {
+                            DataAtGlanceContainerSmall(
+                                title: "Metabolism",
+                                symbol: "flame.fill",
+                                subtitle: String(localized: "HbA1c, Fasting Glucose"),
+                                color: .orange
+                            )
+                        }
                     }
                     
-                    NavigationLink(
-                        destination: CholesterolTestView(records: records)
-                            .navigationTitle("Cholesterol Test Data")
-                    ) {
-                        DataAtGlanceContainerSmall(
-                            title: "Cholesterol",
-                            symbol: "heart.circle",
-                            subtitle: String(localized: "HDL, LDL, etc"),
-                            color: .orange
-                        )
+                    CitedDashboardCard(citation: HealthCitationLibrary.cholesterol) {
+                        NavigationLink(
+                            destination: CholesterolTestView(records: records)
+                                .navigationTitle("Cholesterol Test Data")
+                        ) {
+                            DataAtGlanceContainerSmall(
+                                title: "Cholesterol",
+                                symbol: "heart.circle",
+                                subtitle: String(localized: "HDL, LDL, etc"),
+                                color: .orange
+                            )
+                        }
                     }
                 }
                 
