@@ -74,6 +74,12 @@ enum HealthCitationLibrary {
         description: "Reference for HDL, LDL, triglycerides, and cholesterol test interpretation context.",
         url: URL(string: "https://medlineplus.gov/lab-tests/cholesterol-levels/")!
     )
+
+    static let bodyComposition = HealthCitation(
+        title: "BMI and Waist Circumference - CDC / MedlinePlus",
+        description: "Reference for BMI calculation, weight-related screening, and waist-related health risk context.",
+        url: URL(string: "https://www.cdc.gov/bmi/about/index.html")!
+    )
 }
 
 struct CitationInfoButton: View {
