@@ -26,6 +26,7 @@ enum SheetRoute: Identifiable {
 struct SettingsView: View {
     @State private var isSectionDisabled = true
     @AppStorage("birthDateISO") private var birthDateISO: String = ""
+    @AppStorage("userGender") private var userGender: String = Gender.Male.rawValue
     @State private var dob = DOBState()
     @Query(sort: \CheckupRecord.date, order: .reverse)
     private var record: [CheckupRecord]
@@ -66,11 +67,30 @@ struct SettingsView: View {
         }
     }
     
+    private var genderBinding: Binding<Gender> {
+        Binding<Gender>(
+            get: { Gender(rawValue: userGender) ?? .Male },
+            set: { userGender = $0.rawValue }
+        )
+    }
+
     // MARK: - Your Account
     var yourAccount: some View {
         Section {
             BirthDateRow(dob: $dob)
-            
+
+            HStack {
+                Text("Gender")
+                Spacer()
+                Picker("Gender", selection: genderBinding) {
+                    ForEach(Gender.allCases) { g in
+                        Text(g.rawValue).tag(g)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 160)
+            }
+
             HStack {
                 Text("Last Checkup Date")
                 Spacer()
