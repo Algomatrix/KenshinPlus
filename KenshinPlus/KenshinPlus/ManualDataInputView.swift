@@ -15,7 +15,19 @@ struct ManualDataInputView: View {
     @State private var date: Date = .init()
     @State private var unit: LengthUnit = .cm
     @State private var heightCm: Double = 170.0  // single source of truth
-    @State private var gender: Gender = .Male  // Gender
+    @AppStorage("userGender") private var userGenderRaw: String = Gender.Male.rawValue
+
+    private var gender: Gender {
+        get { Gender(rawValue: userGenderRaw) ?? .Male }
+        set { userGenderRaw = newValue.rawValue }
+    }
+
+    private var genderBinding: Binding<Gender> {
+        Binding<Gender>(
+            get: { Gender(rawValue: userGenderRaw) ?? .Male },
+            set: { userGenderRaw = $0.rawValue }
+        )
+    }
     
     // Weight Unit
     @State private var weightKg: Double? = nil
@@ -89,7 +101,7 @@ struct ManualDataInputView: View {
                         date: $date,
                         unit: $unit,
                         heightCm: $heightCm,
-                        gender: $gender,
+                        gender: genderBinding,
                         weightKg: $weightKg,
                         weightUnit: $weightUnit,
                         fatPercent: $fatPercent,
@@ -110,7 +122,7 @@ struct ManualDataInputView: View {
                                        citation: HealthCitationLibrary.bloodTest
                 ) {
                     ManualDataBloodTest(
-                        gender: $gender,
+                        gender: genderBinding,
                         rbc: $rbcMillionPeruL,
                         hgb: $hgbPerdL,
                         hct: $hctPercent,
@@ -123,7 +135,7 @@ struct ManualDataInputView: View {
                                        citation: HealthCitationLibrary.liver
                 ) {
                     ManualDataLiverFunction(
-                        gender: $gender,
+                        gender: genderBinding,
                         ast: $ast,
                         alt: $alt,
                         ggt: $ggt,
@@ -136,7 +148,7 @@ struct ManualDataInputView: View {
                                        citation: HealthCitationLibrary.kidney
                 ) {
                     ManualDataRenalUrate(
-                        gender: $gender,
+                        gender: genderBinding,
                         creatinine: $creatinine,
                         uricAcid: $uricAcid
                     )
@@ -154,7 +166,7 @@ struct ManualDataInputView: View {
                 PutBarChartInContainer(title: "Lipid Data",
                                        citation: HealthCitationLibrary.cholesterol
                 ) {
-                    ManualDataLipids(gender: $gender, totalCholesterol: $totalCholesterol, hdl: $hdl, ldl: $ldl, triglycerides: $triglycerides)
+                    ManualDataLipids(gender: genderBinding, totalCholesterol: $totalCholesterol, hdl: $hdl, ldl: $ldl, triglycerides: $triglycerides)
                 }
                 
 //                Text("Oprional Data")
@@ -481,7 +493,7 @@ struct ManualDataBasicInfoArea: View {
                 }
             }
             
-            genderSelectPicker
+            unitSelectPicker
             Divider()
 
             inputBodyWeight
@@ -605,15 +617,8 @@ struct ManualDataBasicInfoArea: View {
     }
 
     // MARK: View as var
-    var genderSelectPicker: some View {
+    var unitSelectPicker: some View {
         HStack {
-            Picker("Gender", selection: $gender) {
-                ForEach(Gender.allCases) { gender in
-                    Text(gender.rawValue).tag(gender)
-                }
-            }
-            .pickerStyle(.segmented)
-            
             UnitPicker(unit: $unit)
                 .onChange(of: unit) { _, newValue in
                     // Keep feet/inches UI in sync when switching units
