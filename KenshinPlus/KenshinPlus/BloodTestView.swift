@@ -1,5 +1,5 @@
 //
-//  BloodTestChartView.swift
+//  BloodTestView.swift
 //  KenshinPlus
 //
 //  Created by Shubham Shetkar on 2025/09/09.
@@ -166,6 +166,7 @@ struct BloodTestView: View {
                     }
                     .chartXAxis { ChartAxis.axisAtDataDates(rbcSeries, date: \.date) }
                     .chartScrollableAxes(.horizontal)
+                    .scrolledToLatest(in: rbcSeries, date: \.date)
                     .overlay {
                         if rbcSeries.isEmpty {
                             NoChartDataView(systemImageName: "drop.degreesign.slash", title: "No Data", description: "There is no RBC data from App.")
@@ -191,6 +192,7 @@ struct BloodTestView: View {
                     }
                     .chartXAxis { ChartAxis.axisAtDataDates(wbcSeries, date: \.date) }
                     .chartScrollableAxes(.horizontal)
+                    .scrolledToLatest(in: wbcSeries, date: \.date)
                     .overlay {
                         if wbcSeries.isEmpty {
                             NoChartDataView(systemImageName: "drop.degreesign.slash", title: "No Data", description: "There is no WBC data from App.")
@@ -216,6 +218,7 @@ struct BloodTestView: View {
                     }
                     .chartXAxis { ChartAxis.axisAtDataDates(hgbSeries, date: \.date) }
                     .chartScrollableAxes(.horizontal)
+                    .scrolledToLatest(in: hgbSeries, date: \.date)
                     .overlay {
                         if hgbSeries.isEmpty {
                             NoChartDataView(systemImageName: "drop.degreesign.slash", title: "No Data", description: "There is no Hemoglobin data from App.")
@@ -241,6 +244,7 @@ struct BloodTestView: View {
                     }
                     .chartXAxis { ChartAxis.axisAtDataDates(hctSeries, date: \.date) }
                     .chartScrollableAxes(.horizontal)
+                    .scrolledToLatest(in: hctSeries, date: \.date)
                     .overlay {
                         if hctSeries.isEmpty {
                             NoChartDataView(systemImageName: "drop.degreesign.slash", title: "No Data", description: "There is no Hematocrit data from App.")
@@ -266,6 +270,7 @@ struct BloodTestView: View {
                     }
                     .chartXAxis { ChartAxis.axisAtDataDates(pltSeries, date: \.date) }
                     .chartScrollableAxes(.horizontal)
+                    .scrolledToLatest(in: pltSeries, date: \.date)
                     .overlay {
                         if pltSeries.isEmpty {
                             NoChartDataView(systemImageName: "drop.degreesign.slash", title: "No Data", description: "There is no Platelet data from App.")

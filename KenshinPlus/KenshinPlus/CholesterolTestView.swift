@@ -83,6 +83,7 @@ struct CholesterolTestView: View {
             }
             .chartXAxis { ChartAxis.axisAtDataDates(totalCholesterolSeries, date: \.date) }
             .chartScrollableAxes(.horizontal)
+            .scrolledToLatest(in: totalCholesterolSeries, date: \.date)
             .overlay {
                 if totalCholesterolSeries.isEmpty {
                     NoChartDataView(systemImageName: "heart.circle", title: "No Data", description: "There is no Total Cholesterol data from App.")
@@ -125,6 +126,7 @@ struct CholesterolTestView: View {
             }
             .chartXAxis { ChartAxis.axisAtDataDates(ldlSeries, date: \.date) }
             .chartScrollableAxes(.horizontal)
+            .scrolledToLatest(in: ldlSeries, date: \.date)
             .overlay {
                 if ldlSeries.isEmpty {
                     NoChartDataView(systemImageName: "heart.circle", title: "No Data", description: "There is no LDL data from App.")
@@ -168,6 +170,7 @@ struct CholesterolTestView: View {
             }
             .chartXAxis { ChartAxis.axisAtDataDates(hdlSeries, date: \.date) }
             .chartScrollableAxes(.horizontal)
+            .scrolledToLatest(in: hdlSeries, date: \.date)
             .overlay {
                 if hdlSeries.isEmpty {
                     NoChartDataView(systemImageName: "heart.circle", title: "No Data", description: "There is no HDL data from App.")
@@ -209,6 +212,7 @@ struct CholesterolTestView: View {
             }
             .chartXAxis { ChartAxis.axisAtDataDates(totalCholesterolSeries, date: \.date) }
             .chartScrollableAxes(.horizontal)
+            .scrolledToLatest(in: triglyceridesSeries, date: \.date)
             .overlay {
                 if triglyceridesSeries.isEmpty {
                     NoChartDataView(systemImageName: "heart.circle", title: "No Data", description: "There is no Triglyceride data from App.")

@@ -57,6 +57,7 @@ struct KidneyTestView: View {
                     }
                     .chartXAxis { ChartAxis.axisAtDataDates(uricAcid, date: \.date) }
                     .chartScrollableAxes(.horizontal)
+                    .scrolledToLatest(in: uricAcid, date: \.date)
                     .overlay {
                         if uricAcid.isEmpty {
                             NoChartDataView(systemImageName: "vial.viewfinder", title: "No Data", description: "There is no Albumin data from App.")
@@ -98,6 +99,7 @@ struct KidneyTestView: View {
                     }
                     .chartXAxis { ChartAxis.axisAtDataDates(creatinine, date: \.date) }
                     .chartScrollableAxes(.horizontal)
+                    .scrolledToLatest(in: creatinine, date: \.date)
                     .overlay {
                         if creatinine.isEmpty {
                             NoChartDataView(systemImageName: "vial.viewfinder", title: "No Data", description: "There is no Creatinine data from App.")

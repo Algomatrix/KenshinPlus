@@ -69,6 +69,7 @@ struct MetabolicTestView: View {
                 }
                 .chartXAxis { ChartAxis.axisAtDataDates(hba1cSeries, date: \.date) }
                 .chartScrollableAxes(.horizontal)
+                .scrolledToLatest(in: hba1cSeries, date: \.date)
                 .chartYAxisLabel("HbA1c (%)")
                 .overlay {
                     if hba1cSeries.isEmpty {
@@ -122,6 +123,7 @@ struct MetabolicTestView: View {
                 }
                 .chartXAxis { ChartAxis.axisAtDataDates(glucoseSeries, date: \.date) }
                 .chartScrollableAxes(.horizontal)
+                .scrolledToLatest(in: glucoseSeries, date: \.date)
                 .chartYAxisLabel("Fating Glucose (mg/dL)")
                 .overlay {
                     if glucoseSeries.isEmpty {

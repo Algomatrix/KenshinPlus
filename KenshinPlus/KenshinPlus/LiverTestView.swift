@@ -59,6 +59,7 @@ struct LiverTestView: View {
                     }
                     .chartXAxis { ChartAxis.axisAtDataDates(astSeries, date: \.date) }
                     .chartScrollableAxes(.horizontal)
+                    .scrolledToLatest(in: astSeries, date: \.date)
                     .overlay {
                         if astSeries.isEmpty {
                             NoChartDataView(systemImageName: "chart.line.text.clipboard.fill", title: "No Data", description: "There is no AST(GOT) data from App.")
@@ -84,6 +85,7 @@ struct LiverTestView: View {
                     }
                     .chartXAxis { ChartAxis.axisAtDataDates(altSeries, date: \.date) }
                     .chartScrollableAxes(.horizontal)
+                    .scrolledToLatest(in: altSeries, date: \.date)
                     .overlay {
                         if altSeries.isEmpty {
                             NoChartDataView(systemImageName: "chart.line.text.clipboard.fill", title: "No Data", description: "There is no ALT(GPT) data from App.")
@@ -109,6 +111,7 @@ struct LiverTestView: View {
                     }
                     .chartXAxis { ChartAxis.axisAtDataDates(ggtSeries, date: \.date) }
                     .chartScrollableAxes(.horizontal)
+                    .scrolledToLatest(in: ggtSeries, date: \.date)
                     .overlay {
                         if ggtSeries.isEmpty {
                             NoChartDataView(systemImageName: "chart.line.text.clipboard.fill", title: "No Data", description: "There is no GGT data from App.")
@@ -134,6 +137,7 @@ struct LiverTestView: View {
                     }
                     .chartXAxis { ChartAxis.axisAtDataDates(totalProteinSeries, date: \.date) }
                     .chartScrollableAxes(.horizontal)
+                    .scrolledToLatest(in: totalProteinSeries, date: \.date)
                     .overlay {
                         if totalProteinSeries.isEmpty {
                             NoChartDataView(systemImageName: "chart.line.text.clipboard.fill", title: "No Data", description: "There is no Total Protein data from App.")
@@ -159,6 +163,7 @@ struct LiverTestView: View {
                     }
                     .chartXAxis { ChartAxis.axisAtDataDates(albuminSeries, date: \.date) }
                     .chartScrollableAxes(.horizontal)
+                    .scrolledToLatest(in: albuminSeries, date: \.date)
                     .overlay {
                         if albuminSeries.isEmpty {
                             NoChartDataView(systemImageName: "chart.line.text.clipboard.fill", title: "No Data", description: "There is no Albumin data from App.")

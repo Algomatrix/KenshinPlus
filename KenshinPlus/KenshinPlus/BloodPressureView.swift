@@ -48,6 +48,7 @@ struct BloodPressureView: View {
         }
         .chartXAxis { ChartAxis.axisAtDataDates(systolic, date: \.date) }
         .chartScrollableAxes(.horizontal)
+        .scrolledToLatest(in: systolic, date: \.date)
         .chartYAxis {
             AxisMarks { value in
                 AxisGridLine()
@@ -80,6 +81,7 @@ struct BloodPressureView: View {
         }
         .chartXAxis { ChartAxis.axisAtDataDates(diastolic, date: \.date) }
         .chartScrollableAxes(.horizontal)
+        .scrolledToLatest(in: diastolic, date: \.date)
         .chartYAxis {
             AxisMarks { value in
                 AxisGridLine()
