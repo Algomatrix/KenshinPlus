@@ -11,6 +11,15 @@ enum AppVersion {
     static var current: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
     }
+    
+    static var build: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "0"
+    }
+    
+    /// e.g. "1.2 (42)"
+    static var fullVersion: String {
+        "\(current) (\(build))"
+    }
 }
 
 enum OnboardingKeys {
