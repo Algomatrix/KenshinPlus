@@ -17,13 +17,16 @@ struct HalfDonutChartView: View {
     var highThreshold: Double = 0.7
     var showLabel: Bool = true
 
-    private var progress: Double {
+    // Animation state — starts at 0, springs to target on appear
+    @State private var animatedProgress: Double = 0
+
+    private var targetProgress: Double {
         guard maxValue > 0 else { return 0 }
         return max(0, min(1, value / maxValue))   // clamp 0...1
     }
 
     private var color: Color {
-        switch progress {
+        switch animatedProgress {
         case ..<lowThreshold: return .red
         case ..<highThreshold: return .yellow
         default: return .green
@@ -45,9 +48,9 @@ struct HalfDonutChartView: View {
                 .stroke(Color.gray.opacity(0.2),
                         style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
 
-            // Foreground arc
+            // Foreground arc — driven by animatedProgress
             Circle()
-                .trim(from: 0.0, to: progress * 0.5)
+                .trim(from: 0.0, to: animatedProgress * 0.5)
                 .rotation(.degrees(180))
                 .stroke(color,
                         style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
@@ -67,6 +70,18 @@ struct HalfDonutChartView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Value")
         .accessibilityValue("\(Int(value)) of \(Int(maxValue))")
+        .onAppear {
+            // Spring animation: bouncy feel as the arc fills in
+            withAnimation(.spring(duration: 0.8, bounce: 0.2)) {
+                animatedProgress = targetProgress
+            }
+        }
+        .onChange(of: value) { _, _ in
+            // Re-animate if the value changes (e.g. switching records)
+            withAnimation(.spring(duration: 0.6, bounce: 0.15)) {
+                animatedProgress = targetProgress
+            }
+        }
     }
 }
 
