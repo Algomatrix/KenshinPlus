@@ -27,6 +27,10 @@ struct DashboardView: View {
 
         NavigationStack {
             ScrollView {
+                if records.isEmpty {
+                    emptyStateHint
+                }
+                
                 HStack(spacing: 20) {
                     CitedDashboardCard(citation: HealthCitationLibrary.bodyWeight) {
                         DataAtGlanceContainerSmall(
@@ -327,6 +331,40 @@ struct DashboardView: View {
     private var latestBmiText: String {
         guard let r = latest else { return "-" }
         return String(format: "%.1f", r.bmi)
+    }
+
+    // MARK: - Empty State Onboarding Hint
+    private var emptyStateHint: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "heart.text.clipboard")
+                .font(.system(size: 48))
+                .foregroundStyle(.secondary)
+
+            Text("Welcome to Kenshin Plus+")
+                .font(.title3)
+                .fontWeight(.semibold)
+
+            Text("Add your first health checkup to start tracking your results over time.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            NavigationLink(destination: ManualDataInputView()) {
+                Label("Add Your First Checkup", systemImage: "plus.circle.fill")
+                    .font(.headline)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(.blue, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .foregroundStyle(.white)
+            }
+        }
+        .padding(.vertical, 32)
+        .padding(.horizontal)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(.secondarySystemBackground))
+        )
     }
     
     private func fetchRecord(by id: UUID) -> CheckupRecord? {
