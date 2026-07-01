@@ -33,6 +33,42 @@ struct DashboardView: View {
                     emptyStateHint
                 }
                 
+                // MARK: - Hero Insight Card
+                if !allInsights.isEmpty {
+                    TabView(selection: $currentInsightIndex) {
+                        ForEach(Array(allInsights.enumerated()), id: \.offset) { index, insight in
+                            HeroInsightCard(insight: insight)
+                                .tag(index)
+                        }
+                    }
+                    .tabViewStyle(.page(indexDisplayMode: .never))
+                    .frame(height: 90)
+                    .onChange(of: currentInsightIndex) { _, _ in
+                        // User swiped manually — pause auto-rotation for 8 seconds
+                        insightPauseUntil = Date().addingTimeInterval(8)
+                    }
+                    .onReceive(insightTick) { now in
+                        guard allInsights.count > 1,
+                              now >= insightPauseUntil else { return }
+                        withAnimation {
+                            currentInsightIndex = (currentInsightIndex + 1) % allInsights.count
+                        }
+                        // Wait 5 seconds before next auto-advance
+                        insightPauseUntil = now.addingTimeInterval(5)
+                    }
+                    
+                    if allInsights.count > 1 {
+                        HStack(spacing: 6) {
+                            ForEach(0..<allInsights.count, id: \.self) { i in
+                                Circle()
+                                    .fill(i == currentInsightIndex ? allInsights[currentInsightIndex % allInsights.count].color : Color.secondary.opacity(0.3))
+                                    .frame(width: 6, height: 6)
+                            }
+                        }
+                        .padding(.bottom, 4)
+                    }
+                }
+
                 HStack(spacing: 20) {
                     CitedDashboardCard(citation: HealthCitationLibrary.bodyWeight) {
                         DataAtGlanceContainerSmall(
@@ -398,6 +434,165 @@ struct DashboardView: View {
         }
         try? modelContext.save()
     }
+
+    // MARK: - Hero Insight Logic
+    @State private var currentInsightIndex = 0
+    @State private var insightAutoRotate = true
+    @State private var insightPauseUntil: Date = .distantPast
+    private let insightTick = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    
+    /// Generates all applicable insights by comparing the latest two records.
+    private var allInsights: [DashboardInsight] {
+        guard records.count >= 2 else { return [] }
+        let current = records[0]   // most recent
+        let previous = records[1]  // second most recent
+        var insights: [DashboardInsight] = []
+        
+        // Check BMI change
+        let currentBMI = current.bmi
+        let previousBMI = previous.bmi
+        if currentBMI > 0 && previousBMI > 0 {
+            let delta = currentBMI - previousBMI
+            if abs(delta) >= 0.3 {
+                let direction: String = delta < 0 ? "decreased" : "increased"
+                insights.append(DashboardInsight(
+                    icon: delta < 0 ? "arrow.down.right" : "arrow.up.right",
+                    color: delta < 0 ? .green : .orange,
+                    title: "BMI \(direction)",
+                    message: String(format: "Your BMI went from %.1f to %.1f since your last checkup.", previousBMI, currentBMI)
+                ))
+            }
+        }
+        
+        // Check blood pressure
+        if let curSys = current.systolic, let prevSys = previous.systolic {
+            let delta = curSys - prevSys
+            if abs(delta) >= 5 {
+                let direction: String = delta < 0 ? "lower" : "higher"
+                insights.append(DashboardInsight(
+                    icon: delta < 0 ? "heart.fill" : "exclamationmark.heart.fill",
+                    color: delta < 0 ? .green : .red,
+                    title: "Blood pressure is \(direction)",
+                    message: String(format: "Systolic changed from %.0f to %.0f mmHg.", prevSys, curSys)
+                ))
+            }
+        }
+        
+        // Check HbA1c
+        if let curA1c = current.hba1cNgspPercent, let prevA1c = previous.hba1cNgspPercent {
+            let delta = curA1c - prevA1c
+            if abs(delta) >= 0.1 {
+                let direction: String = delta < 0 ? "improved" : "increased"
+                insights.append(DashboardInsight(
+                    icon: delta < 0 ? "checkmark.circle.fill" : "exclamationmark.triangle.fill",
+                    color: delta < 0 ? .green : .orange,
+                    title: "HbA1c \(direction)",
+                    message: String(format: "HbA1c went from %.1f%% to %.1f%%.", prevA1c, curA1c)
+                ))
+            }
+        }
+        
+        // Check LDL cholesterol
+        if let curLDL = current.ldl, let prevLDL = previous.ldl {
+            let delta = curLDL - prevLDL
+            if abs(delta) >= 5 {
+                let direction: String = delta < 0 ? "decreased" : "increased"
+                insights.append(DashboardInsight(
+                    icon: delta < 0 ? "arrow.down.heart.fill" : "exclamationmark.triangle.fill",
+                    color: delta < 0 ? .green : .orange,
+                    title: "LDL cholesterol \(direction)",
+                    message: String(format: "LDL went from %.0f to %.0f mg/dL.", prevLDL, curLDL)
+                ))
+            }
+        }
+        
+        // Check Hemoglobin
+        if let curHgb = current.hgbPerdL, let prevHgb = previous.hgbPerdL {
+            let delta = curHgb - prevHgb
+            if abs(delta) >= 0.5 {
+                let direction: String = delta < 0 ? "dropped" : "increased"
+                let color: Color = (curHgb < 13.5) ? .red : (delta < 0 ? .orange : .green)
+                insights.append(DashboardInsight(
+                    icon: delta < 0 ? "arrow.down.circle.fill" : "arrow.up.circle.fill",
+                    color: color,
+                    title: "Hemoglobin \(direction)",
+                    message: String(format: "Hemoglobin went from %.1f to %.1f g/dL.", prevHgb, curHgb)
+                ))
+            }
+        }
+        
+        // Check WBC
+        if let curWBC = current.wbcThousandPeruL, let prevWBC = previous.wbcThousandPeruL {
+            let delta = curWBC - prevWBC
+            if abs(delta) >= 1.5 {
+                let direction: String = delta > 0 ? "elevated" : "decreased"
+                let color: Color = (curWBC > 11.0 || curWBC < 4.5) ? .red : .orange
+                insights.append(DashboardInsight(
+                    icon: delta > 0 ? "exclamationmark.triangle.fill" : "arrow.down.circle.fill",
+                    color: color,
+                    title: "WBC \(direction)",
+                    message: String(format: "WBC went from %.1f to %.1f thousand/µL.", prevWBC, curWBC)
+                ))
+            }
+        }
+        
+        // Check AST (liver)
+        if let curAST = current.ast, let prevAST = previous.ast {
+            let delta = curAST - prevAST
+            if abs(delta) >= 10 {
+                let direction: String = delta > 0 ? "elevated" : "improved"
+                let color: Color = curAST > 40 ? .red : (delta > 0 ? .orange : .green)
+                insights.append(DashboardInsight(
+                    icon: delta > 0 ? "exclamationmark.triangle.fill" : "checkmark.circle.fill",
+                    color: color,
+                    title: "AST(GOT) \(direction)",
+                    message: String(format: "AST went from %.0f to %.0f U/L.", prevAST, curAST)
+                ))
+            }
+        }
+        
+        // Check ALT (liver)
+        if let curALT = current.alt, let prevALT = previous.alt {
+            let delta = curALT - prevALT
+            if abs(delta) >= 10 {
+                let direction: String = delta > 0 ? "elevated" : "improved"
+                let color: Color = curALT > 56 ? .red : (delta > 0 ? .orange : .green)
+                insights.append(DashboardInsight(
+                    icon: delta > 0 ? "exclamationmark.triangle.fill" : "checkmark.circle.fill",
+                    color: color,
+                    title: "ALT(GPT) \(direction)",
+                    message: String(format: "ALT went from %.0f to %.0f U/L.", prevALT, curALT)
+                ))
+            }
+        }
+        
+        // Check Creatinine (kidney)
+        if let curCr = current.creatinine, let prevCr = previous.creatinine {
+            let delta = curCr - prevCr
+            if abs(delta) >= 0.2 {
+                let direction: String = delta > 0 ? "elevated" : "improved"
+                let color: Color = curCr > 1.1 ? .red : (delta > 0 ? .orange : .green)
+                insights.append(DashboardInsight(
+                    icon: delta > 0 ? "exclamationmark.triangle.fill" : "checkmark.circle.fill",
+                    color: color,
+                    title: "Creatinine \(direction)",
+                    message: String(format: "Creatinine went from %.2f to %.2f mg/dL.", prevCr, curCr)
+                ))
+            }
+        }
+        
+        // If nothing changed, show stable message
+        if insights.isEmpty {
+            insights.append(DashboardInsight(
+                icon: "checkmark.seal.fill",
+                color: .green,
+                title: "Looking stable",
+                message: "No significant changes between your last two checkups. Keep it up!"
+            ))
+        }
+        
+        return insights
+    }
 }
 
 
@@ -406,4 +601,47 @@ struct DashboardView: View {
         DashboardView()
     }
     .modelContainer(for: CheckupRecord.self, inMemory: true)
+}
+
+// MARK: - Hero Insight Types
+
+struct DashboardInsight {
+    let icon: String
+    let color: Color
+    let title: String
+    let message: String
+}
+
+struct HeroInsightCard: View {
+    let insight: DashboardInsight
+    
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: insight.icon)
+                .font(.title2)
+                .foregroundStyle(insight.color)
+                .frame(width: 40, height: 40)
+                .background(insight.color.opacity(0.12), in: Circle())
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(insight.title)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                
+                Text(insight.message)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
+            
+            Spacer(minLength: 0)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(insight.color.opacity(0.06))
+                .strokeBorder(insight.color.opacity(0.15), lineWidth: 0.5)
+        )
+    }
 }
