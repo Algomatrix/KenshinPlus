@@ -21,6 +21,9 @@ struct DashboardView: View {
     @State private var undoDeadline: Date? = nil
     private let undoTick = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
 
+    // MARK: - Zoom transition namespace
+    @Namespace private var dashboardNamespace
+
     let mockData = MockDataForPreview()
     var body: some View {
 //        let mockCheckupRecords = mockData.mockCheckupRecordSeries()
@@ -75,6 +78,7 @@ struct DashboardView: View {
                         NavigationLink(
                             destination: BloodPressureView(records: records)
                                 .navigationTitle("Blood Pressure Data")
+                                .navigationTransition(.zoom(sourceID: "bloodPressure", in: dashboardNamespace))
                         ) {
                             DataAtGlanceContainerSmall(
                                 title: "Blood Pressure",
@@ -83,12 +87,14 @@ struct DashboardView: View {
                                 color: .red
                             )
                         }
+                        .matchedTransitionSource(id: "bloodPressure", in: dashboardNamespace)
                     }
                     
                     CitedDashboardCard(citation: HealthCitationLibrary.bloodTest) {
                         NavigationLink(
                             destination: BloodTestView(records: records)
                                 .navigationTitle("Blood Test Data")
+                                .navigationTransition(.zoom(sourceID: "bloodTest", in: dashboardNamespace))
                         ) {
                             DataAtGlanceContainerSmall(
                                 title: "Blood Test",
@@ -97,6 +103,7 @@ struct DashboardView: View {
                                 color: .red
                             )
                         }
+                        .matchedTransitionSource(id: "bloodTest", in: dashboardNamespace)
                     }
                 }
                 
@@ -106,6 +113,7 @@ struct DashboardView: View {
                         NavigationLink(
                             destination: LiverTestView(records: records)
                                 .navigationTitle("Liver Test Data")
+                                .navigationTransition(.zoom(sourceID: "liver", in: dashboardNamespace))
                         ) {
                             DataAtGlanceContainerSmall(
                                 title: "Liver Info",
@@ -114,12 +122,14 @@ struct DashboardView: View {
                                 color: .red
                             )
                         }
+                        .matchedTransitionSource(id: "liver", in: dashboardNamespace)
                     }
                     
                     CitedDashboardCard(citation: HealthCitationLibrary.kidney) {
                         NavigationLink(
                             destination: KidneyTestView(records: records)
                                 .navigationTitle("Kidney Test Data")
+                                .navigationTransition(.zoom(sourceID: "kidney", in: dashboardNamespace))
                         ) {
                             DataAtGlanceContainerSmall(
                                 title: "Uric Acid",
@@ -128,6 +138,7 @@ struct DashboardView: View {
                                 color: .red
                             )
                         }
+                        .matchedTransitionSource(id: "kidney", in: dashboardNamespace)
                     }
                 }
                 
@@ -137,6 +148,7 @@ struct DashboardView: View {
                         NavigationLink(
                             destination: MetabolicTestView(records: records)
                                 .navigationTitle("Metabolic Test Data")
+                                .navigationTransition(.zoom(sourceID: "metabolism", in: dashboardNamespace))
                         ) {
                             DataAtGlanceContainerSmall(
                                 title: "Metabolism",
@@ -145,12 +157,14 @@ struct DashboardView: View {
                                 color: .orange
                             )
                         }
+                        .matchedTransitionSource(id: "metabolism", in: dashboardNamespace)
                     }
                     
                     CitedDashboardCard(citation: HealthCitationLibrary.cholesterol) {
                         NavigationLink(
                             destination: CholesterolTestView(records: records)
                                 .navigationTitle("Cholesterol Test Data")
+                                .navigationTransition(.zoom(sourceID: "cholesterol", in: dashboardNamespace))
                         ) {
                             DataAtGlanceContainerSmall(
                                 title: "Cholesterol",
@@ -159,6 +173,7 @@ struct DashboardView: View {
                                 color: .orange
                             )
                         }
+                        .matchedTransitionSource(id: "cholesterol", in: dashboardNamespace)
                     }
                 }
                 
@@ -222,6 +237,7 @@ struct DashboardView: View {
             }
             .navigationTitle("Health Dashboard")
             .padding()
+            .fontDesign(.rounded)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink(destination: ManualDataInputView()) {
