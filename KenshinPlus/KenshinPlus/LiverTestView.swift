@@ -42,13 +42,23 @@ struct LiverTestView: View {
         ScrollView {
             VStack {
                 PutBarChartInContainer(title: "AST(GOT)") {
-                    Chart(astSeries) { entry in
-                        LineMark (
-                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
-                            y: .value("AST(GOT)", entry.value)
-                        )
-                        .symbol(.circle)
-                        .interpolationMethod(.monotone)
+                    Chart {
+                        if !astSeries.isEmpty {
+                            RectangleMark(
+                                yStart: .value("AST Min", 10.0),
+                                yEnd:   .value("AST Max", 40.0)
+                            )
+                            .foregroundStyle(.green.opacity(0.12))
+                        }
+
+                        ForEach(astSeries) { entry in
+                            LineMark(
+                                x: .value("Date", ChartAxis.startOfDay(entry.date)),
+                                y: .value("AST(GOT)", entry.value)
+                            )
+                            .symbol(.circle)
+                            .interpolationMethod(.monotone)
+                        }
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -59,6 +69,7 @@ struct LiverTestView: View {
                     }
                     .chartXAxis { ChartAxis.axisAtDataDates(astSeries, date: \.date) }
                     .chartScrollableAxes(.horizontal)
+                    .scrolledToLatest(in: astSeries, date: \.date)
                     .overlay {
                         if astSeries.isEmpty {
                             NoChartDataView(systemImageName: "chart.line.text.clipboard.fill", title: "No Data", description: "There is no AST(GOT) data from App.")
@@ -67,13 +78,23 @@ struct LiverTestView: View {
                 }
                 
                 PutBarChartInContainer(title: "ALT(GPT)") {
-                    Chart(altSeries) { entry in
-                        LineMark (
-                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
-                            y: .value("ALT(GPT)", entry.value)
-                        )
-                        .symbol(.circle)
-                        .interpolationMethod(.monotone)
+                    Chart {
+                        if !altSeries.isEmpty {
+                            RectangleMark(
+                                yStart: .value("ALT Min", 7.0),
+                                yEnd:   .value("ALT Max", 56.0)
+                            )
+                            .foregroundStyle(.green.opacity(0.12))
+                        }
+
+                        ForEach(altSeries) { entry in
+                            LineMark(
+                                x: .value("Date", ChartAxis.startOfDay(entry.date)),
+                                y: .value("ALT(GPT)", entry.value)
+                            )
+                            .symbol(.circle)
+                            .interpolationMethod(.monotone)
+                        }
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -84,6 +105,7 @@ struct LiverTestView: View {
                     }
                     .chartXAxis { ChartAxis.axisAtDataDates(altSeries, date: \.date) }
                     .chartScrollableAxes(.horizontal)
+                    .scrolledToLatest(in: altSeries, date: \.date)
                     .overlay {
                         if altSeries.isEmpty {
                             NoChartDataView(systemImageName: "chart.line.text.clipboard.fill", title: "No Data", description: "There is no ALT(GPT) data from App.")
@@ -92,13 +114,23 @@ struct LiverTestView: View {
                 }
                 
                 PutBarChartInContainer(title: "GGT") {
-                    Chart(ggtSeries) { entry in
-                        LineMark (
-                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
-                            y: .value("GGT", entry.value)
-                        )
-                        .symbol(.circle)
-                        .interpolationMethod(.monotone)
+                    Chart {
+                        if !ggtSeries.isEmpty {
+                            RectangleMark(
+                                yStart: .value("GGT Min", 9.0),
+                                yEnd:   .value("GGT Max", 48.0)
+                            )
+                            .foregroundStyle(.green.opacity(0.12))
+                        }
+
+                        ForEach(ggtSeries) { entry in
+                            LineMark(
+                                x: .value("Date", ChartAxis.startOfDay(entry.date)),
+                                y: .value("GGT", entry.value)
+                            )
+                            .symbol(.circle)
+                            .interpolationMethod(.monotone)
+                        }
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -109,6 +141,7 @@ struct LiverTestView: View {
                     }
                     .chartXAxis { ChartAxis.axisAtDataDates(ggtSeries, date: \.date) }
                     .chartScrollableAxes(.horizontal)
+                    .scrolledToLatest(in: ggtSeries, date: \.date)
                     .overlay {
                         if ggtSeries.isEmpty {
                             NoChartDataView(systemImageName: "chart.line.text.clipboard.fill", title: "No Data", description: "There is no GGT data from App.")
@@ -117,13 +150,23 @@ struct LiverTestView: View {
                 }
                 
                 PutBarChartInContainer(title: "Total Protein") {
-                    Chart(totalProteinSeries) { entry in
-                        LineMark (
-                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
-                            y: .value("Total Protein", entry.value)
-                        )
-                        .symbol(.circle)
-                        .interpolationMethod(.monotone)
+                    Chart {
+                        if !totalProteinSeries.isEmpty {
+                            RectangleMark(
+                                yStart: .value("TP Min", 6.0),
+                                yEnd:   .value("TP Max", 8.3)
+                            )
+                            .foregroundStyle(.green.opacity(0.12))
+                        }
+
+                        ForEach(totalProteinSeries) { entry in
+                            LineMark(
+                                x: .value("Date", ChartAxis.startOfDay(entry.date)),
+                                y: .value("Total Protein", entry.value)
+                            )
+                            .symbol(.circle)
+                            .interpolationMethod(.monotone)
+                        }
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -134,6 +177,7 @@ struct LiverTestView: View {
                     }
                     .chartXAxis { ChartAxis.axisAtDataDates(totalProteinSeries, date: \.date) }
                     .chartScrollableAxes(.horizontal)
+                    .scrolledToLatest(in: totalProteinSeries, date: \.date)
                     .overlay {
                         if totalProteinSeries.isEmpty {
                             NoChartDataView(systemImageName: "chart.line.text.clipboard.fill", title: "No Data", description: "There is no Total Protein data from App.")
@@ -142,13 +186,23 @@ struct LiverTestView: View {
                 }
                 
                 PutBarChartInContainer(title: "Albumin") {
-                    Chart(albuminSeries) { entry in
-                        LineMark (
-                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
-                            y: .value("Albumin", entry.value)
-                        )
-                        .symbol(.circle)
-                        .interpolationMethod(.monotone)
+                    Chart {
+                        if !albuminSeries.isEmpty {
+                            RectangleMark(
+                                yStart: .value("Alb Min", 3.5),
+                                yEnd:   .value("Alb Max", 5.0)
+                            )
+                            .foregroundStyle(.green.opacity(0.12))
+                        }
+
+                        ForEach(albuminSeries) { entry in
+                            LineMark(
+                                x: .value("Date", ChartAxis.startOfDay(entry.date)),
+                                y: .value("Albumin", entry.value)
+                            )
+                            .symbol(.circle)
+                            .interpolationMethod(.monotone)
+                        }
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -159,6 +213,7 @@ struct LiverTestView: View {
                     }
                     .chartXAxis { ChartAxis.axisAtDataDates(albuminSeries, date: \.date) }
                     .chartScrollableAxes(.horizontal)
+                    .scrolledToLatest(in: albuminSeries, date: \.date)
                     .overlay {
                         if albuminSeries.isEmpty {
                             NoChartDataView(systemImageName: "chart.line.text.clipboard.fill", title: "No Data", description: "There is no Albumin data from App.")
@@ -167,6 +222,14 @@ struct LiverTestView: View {
                 }
             }
             .padding()
+        }
+        .background {
+            LinearGradient(
+                colors: [.red.opacity(0.15), .clear],
+                startPoint: .top,
+                endPoint: .center
+            )
+            .ignoresSafeArea()
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

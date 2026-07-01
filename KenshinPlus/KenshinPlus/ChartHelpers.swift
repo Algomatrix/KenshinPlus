@@ -77,6 +77,51 @@ enum ChartAxis {
     }
 }
 
+// MARK: - Scroll-to-latest helper
+extension View {
+    /// Pads the chart X domain so the latest data point can appear centered,
+    /// similar to Apple Health charts.
+    /// - Single point: pads domain symmetrically and scrolls to center the dot.
+    /// - Multiple points: pads the domain and scrolls so the latest point is centered.
+    func scrolledToLatest<S: Collection>(in samples: S, date keyPath: KeyPath<S.Element, Date>) -> some View {
+        let dates = samples.map { $0[keyPath: keyPath] }
+        guard let latest = dates.max(), let earliest = dates.min() else {
+            return AnyView(self)
+        }
+
+        let totalSpan = latest.timeIntervalSince(earliest)
+
+        if totalSpan == 0 {
+            // Single data point — pad generously and scroll so the point is centered.
+            let windowHalf: TimeInterval = 30 * 24 * 3600 // 30 days each side
+            let paddedStart = latest.addingTimeInterval(-windowHalf)
+            let paddedEnd   = latest.addingTimeInterval(windowHalf)
+            // Scroll to 15 days before the point so the point is near center
+            // of a ~30 day visible window.
+            let scrollTo = latest.addingTimeInterval(-windowHalf / 2)
+
+            return AnyView(
+                self
+                    .chartXScale(domain: paddedStart...paddedEnd)
+                    .chartXVisibleDomain(length: 30 * 24 * 3600) // show 30 days at a time
+                    .chartScrollPosition(initialX: scrollTo)
+            )
+        } else {
+            // Multiple points — pad the domain and scroll to center the latest.
+            let padding = totalSpan / 2
+            let paddedStart = earliest.addingTimeInterval(-padding)
+            let paddedEnd   = latest.addingTimeInterval(padding)
+            let scrollTo    = ChartAxis.startOfDay(latest.addingTimeInterval(-padding))
+
+            return AnyView(
+                self
+                    .chartXScale(domain: paddedStart...paddedEnd)
+                    .chartScrollPosition(initialX: scrollTo)
+            )
+        }
+    }
+}
+
 // MARK: - Small convenience View extensions (Not much used right now. Maybe in future)
 // Apply initial domain if present
 extension View {
