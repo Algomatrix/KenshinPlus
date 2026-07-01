@@ -30,16 +30,13 @@ struct MetabolicTestView: View {
                     .foregroundStyle(.secondary)
                 
                 Chart {
-                    if let (seriesStart, seriesEnd) = ChartAxis.bounds(hba1cSeries, date: \.date),
-                       !hba1cSeries.isEmpty {
+                    if !hba1cSeries.isEmpty {
                         // Normal band ~4.0–5.6% (visual guide)
                         RectangleMark(
-                            xStart: .value("Start", seriesStart),
-                            xEnd: .value("End", seriesEnd),
                             yStart: .value("Normal Min", 4.0),
                             yEnd: .value("Normal Max", 5.6)
                         )
-                        .foregroundStyle(.blue.opacity(0.12))
+                        .foregroundStyle(.green.opacity(0.12))
 
                         
                         RuleMark(y: .value("Diabetes", 6.5))
@@ -85,12 +82,8 @@ struct MetabolicTestView: View {
                     .foregroundStyle(.secondary)
                 
                 Chart {
-                    if let (seriesStart, seriesEnd) = ChartAxis.bounds(glucoseSeries, date: \.date),
-                       !glucoseSeries.isEmpty {
-                        // Normal band ~4.0–5.6% (visual guide)
+                    if !glucoseSeries.isEmpty {
                         RectangleMark(
-                            xStart: .value("Start", seriesStart),
-                            xEnd: .value("End", seriesEnd),
                             yStart: .value("Normal Min", 70),
                             yEnd: .value("Normal Max", 99)
                         )

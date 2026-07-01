@@ -42,13 +42,23 @@ struct LiverTestView: View {
         ScrollView {
             VStack {
                 PutBarChartInContainer(title: "AST(GOT)") {
-                    Chart(astSeries) { entry in
-                        LineMark (
-                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
-                            y: .value("AST(GOT)", entry.value)
-                        )
-                        .symbol(.circle)
-                        .interpolationMethod(.monotone)
+                    Chart {
+                        if !astSeries.isEmpty {
+                            RectangleMark(
+                                yStart: .value("AST Min", 10.0),
+                                yEnd:   .value("AST Max", 40.0)
+                            )
+                            .foregroundStyle(.green.opacity(0.12))
+                        }
+
+                        ForEach(astSeries) { entry in
+                            LineMark(
+                                x: .value("Date", ChartAxis.startOfDay(entry.date)),
+                                y: .value("AST(GOT)", entry.value)
+                            )
+                            .symbol(.circle)
+                            .interpolationMethod(.monotone)
+                        }
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -68,13 +78,23 @@ struct LiverTestView: View {
                 }
                 
                 PutBarChartInContainer(title: "ALT(GPT)") {
-                    Chart(altSeries) { entry in
-                        LineMark (
-                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
-                            y: .value("ALT(GPT)", entry.value)
-                        )
-                        .symbol(.circle)
-                        .interpolationMethod(.monotone)
+                    Chart {
+                        if !altSeries.isEmpty {
+                            RectangleMark(
+                                yStart: .value("ALT Min", 7.0),
+                                yEnd:   .value("ALT Max", 56.0)
+                            )
+                            .foregroundStyle(.green.opacity(0.12))
+                        }
+
+                        ForEach(altSeries) { entry in
+                            LineMark(
+                                x: .value("Date", ChartAxis.startOfDay(entry.date)),
+                                y: .value("ALT(GPT)", entry.value)
+                            )
+                            .symbol(.circle)
+                            .interpolationMethod(.monotone)
+                        }
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -94,13 +114,23 @@ struct LiverTestView: View {
                 }
                 
                 PutBarChartInContainer(title: "GGT") {
-                    Chart(ggtSeries) { entry in
-                        LineMark (
-                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
-                            y: .value("GGT", entry.value)
-                        )
-                        .symbol(.circle)
-                        .interpolationMethod(.monotone)
+                    Chart {
+                        if !ggtSeries.isEmpty {
+                            RectangleMark(
+                                yStart: .value("GGT Min", 9.0),
+                                yEnd:   .value("GGT Max", 48.0)
+                            )
+                            .foregroundStyle(.green.opacity(0.12))
+                        }
+
+                        ForEach(ggtSeries) { entry in
+                            LineMark(
+                                x: .value("Date", ChartAxis.startOfDay(entry.date)),
+                                y: .value("GGT", entry.value)
+                            )
+                            .symbol(.circle)
+                            .interpolationMethod(.monotone)
+                        }
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -120,13 +150,23 @@ struct LiverTestView: View {
                 }
                 
                 PutBarChartInContainer(title: "Total Protein") {
-                    Chart(totalProteinSeries) { entry in
-                        LineMark (
-                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
-                            y: .value("Total Protein", entry.value)
-                        )
-                        .symbol(.circle)
-                        .interpolationMethod(.monotone)
+                    Chart {
+                        if !totalProteinSeries.isEmpty {
+                            RectangleMark(
+                                yStart: .value("TP Min", 6.0),
+                                yEnd:   .value("TP Max", 8.3)
+                            )
+                            .foregroundStyle(.green.opacity(0.12))
+                        }
+
+                        ForEach(totalProteinSeries) { entry in
+                            LineMark(
+                                x: .value("Date", ChartAxis.startOfDay(entry.date)),
+                                y: .value("Total Protein", entry.value)
+                            )
+                            .symbol(.circle)
+                            .interpolationMethod(.monotone)
+                        }
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -146,13 +186,23 @@ struct LiverTestView: View {
                 }
                 
                 PutBarChartInContainer(title: "Albumin") {
-                    Chart(albuminSeries) { entry in
-                        LineMark (
-                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
-                            y: .value("Albumin", entry.value)
-                        )
-                        .symbol(.circle)
-                        .interpolationMethod(.monotone)
+                    Chart {
+                        if !albuminSeries.isEmpty {
+                            RectangleMark(
+                                yStart: .value("Alb Min", 3.5),
+                                yEnd:   .value("Alb Max", 5.0)
+                            )
+                            .foregroundStyle(.green.opacity(0.12))
+                        }
+
+                        ForEach(albuminSeries) { entry in
+                            LineMark(
+                                x: .value("Date", ChartAxis.startOfDay(entry.date)),
+                                y: .value("Albumin", entry.value)
+                            )
+                            .symbol(.circle)
+                            .interpolationMethod(.monotone)
+                        }
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in

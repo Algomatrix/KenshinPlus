@@ -54,11 +54,8 @@ struct CholesterolTestView: View {
     var totalCholesterol: some View {
         PutBarChartInContainer(title: "Total Cholesterol") {
             Chart {
-                if let (seriesStart, seriesEnd) = ChartAxis.bounds(totalCholesterolSeries, date: \.date),
-                   !totalCholesterolSeries.isEmpty {
+                if !totalCholesterolSeries.isEmpty {
                     RectangleMark(
-                        xStart: .value("Start", ChartAxis.startOfDay(seriesStart)),
-                        xEnd:   .value("End",   ChartAxis.startOfDay(seriesEnd)),
                         yStart: .value("Cholesterol Min", 150),
                         yEnd:   .value("Cholesterol Max", 240)
                     )
@@ -96,18 +93,15 @@ struct CholesterolTestView: View {
     var LDL: some View {
         PutBarChartInContainer(title: "LDL") {
             Chart {
-                if let (seriesStart, seriesEnd) = ChartAxis.bounds(ldlSeries, date: \.date),
-                   !ldlSeries.isEmpty {
+                if !ldlSeries.isEmpty {
                     RectangleMark(
-                        xStart: .value("Start", ChartAxis.startOfDay(seriesStart)),
-                        xEnd:   .value("End",   ChartAxis.startOfDay(seriesEnd)),
                         yStart: .value("LDL Min", 70),
                         yEnd:   .value("LDL Max", 160)
                     )
                     .foregroundStyle(.green.opacity(0.12))
                 }
 
-                // Line for Creatinine
+                // Line for LDL
                 ForEach(ldlSeries) { entry in
                     LineMark(
                         x: .value("Date", ChartAxis.startOfDay(entry.date)),
@@ -139,19 +133,15 @@ struct CholesterolTestView: View {
     var HDL: some View {
         PutBarChartInContainer(title: "HDL") {
             Chart {
-                // Reference band for Creatinine (0.6–1.1 mg/dL)
-                if let (seriesStart, seriesEnd) = ChartAxis.bounds(hdlSeries, date: \.date),
-                   !hdlSeries.isEmpty {
+                if !hdlSeries.isEmpty {
                     RectangleMark(
-                        xStart: .value("Start", ChartAxis.startOfDay(seriesStart)),
-                        xEnd:   .value("End",   ChartAxis.startOfDay(seriesEnd)),
                         yStart: .value("HDL Min", 35),
                         yEnd:   .value("HDL Max", 70)
                     )
                     .foregroundStyle(.green.opacity(0.12))
                 }
 
-                // Line for Creatinine
+                // Line for HDL
                 ForEach(hdlSeries) { entry in
                     LineMark(
                         x: .value("Date", ChartAxis.startOfDay(entry.date)),
@@ -183,11 +173,8 @@ struct CholesterolTestView: View {
     var triglycerides: some View {
         PutBarChartInContainer(title: "Triglycerides") {
             Chart {
-                if let (seriesStart, seriesEnd) = ChartAxis.bounds(triglyceridesSeries, date: \.date),
-                   !triglyceridesSeries.isEmpty {
+                if !triglyceridesSeries.isEmpty {
                     RectangleMark(
-                        xStart: .value("Start", ChartAxis.startOfDay(seriesStart)),
-                        xEnd:   .value("End",   ChartAxis.startOfDay(seriesEnd)),
                         yStart: .value("Triglyceride Min", 80),
                         yEnd:   .value("Triglyceride Max", 200)
                     )

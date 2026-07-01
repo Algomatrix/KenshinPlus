@@ -149,13 +149,23 @@ struct BloodTestView: View {
                 }
 
                 PutBarChartInContainer(title: "Red Blood Cell (RBC)")  {
-                    Chart(rbcSeries) { entry in
-                        LineMark (
-                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
-                            y: .value("RBC", entry.value)
-                        )
-                        .symbol(.circle)
-                        .interpolationMethod(.monotone)
+                    Chart {
+                        if !rbcSeries.isEmpty {
+                            RectangleMark(
+                                yStart: .value("RBC Min", 4.5),
+                                yEnd:   .value("RBC Max", 5.5)
+                            )
+                            .foregroundStyle(.green.opacity(0.12))
+                        }
+
+                        ForEach(rbcSeries) { entry in
+                            LineMark(
+                                x: .value("Date", ChartAxis.startOfDay(entry.date)),
+                                y: .value("RBC", entry.value)
+                            )
+                            .symbol(.circle)
+                            .interpolationMethod(.monotone)
+                        }
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -175,13 +185,23 @@ struct BloodTestView: View {
                 }
 
                 PutBarChartInContainer(title: "White Blood Cell (WBC)")  {
-                    Chart(wbcSeries) { entry in
-                        LineMark (
-                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
-                            y: .value("WBC", entry.value)
-                        )
-                        .symbol(.circle)
-                        .interpolationMethod(.monotone)
+                    Chart {
+                        if !wbcSeries.isEmpty {
+                            RectangleMark(
+                                yStart: .value("WBC Min", 4.5),
+                                yEnd:   .value("WBC Max", 11.0)
+                            )
+                            .foregroundStyle(.green.opacity(0.12))
+                        }
+
+                        ForEach(wbcSeries) { entry in
+                            LineMark(
+                                x: .value("Date", ChartAxis.startOfDay(entry.date)),
+                                y: .value("WBC", entry.value)
+                            )
+                            .symbol(.circle)
+                            .interpolationMethod(.monotone)
+                        }
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -201,13 +221,23 @@ struct BloodTestView: View {
                 }
 
                 PutBarChartInContainer(title: "Hemoglobin")  {
-                    Chart(hgbSeries) { entry in
-                        LineMark (
-                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
-                            y: .value("Hemoglobin", entry.value)
-                        )
-                        .symbol(.circle)
-                        .interpolationMethod(.monotone)
+                    Chart {
+                        if !hgbSeries.isEmpty {
+                            RectangleMark(
+                                yStart: .value("Hgb Min", 13.5),
+                                yEnd:   .value("Hgb Max", 17.5)
+                            )
+                            .foregroundStyle(.green.opacity(0.12))
+                        }
+
+                        ForEach(hgbSeries) { entry in
+                            LineMark(
+                                x: .value("Date", ChartAxis.startOfDay(entry.date)),
+                                y: .value("Hemoglobin", entry.value)
+                            )
+                            .symbol(.circle)
+                            .interpolationMethod(.monotone)
+                        }
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -227,13 +257,23 @@ struct BloodTestView: View {
                 }
 
                 PutBarChartInContainer(title: "Hematocrit")  {
-                    Chart(hctSeries) { entry in
-                        LineMark (
-                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
-                            y: .value("Hematocrit", entry.value)
-                        )
-                        .symbol(.circle)
-                        .interpolationMethod(.monotone)
+                    Chart {
+                        if !hctSeries.isEmpty {
+                            RectangleMark(
+                                yStart: .value("Hct Min", 38.3),
+                                yEnd:   .value("Hct Max", 48.6)
+                            )
+                            .foregroundStyle(.green.opacity(0.12))
+                        }
+
+                        ForEach(hctSeries) { entry in
+                            LineMark(
+                                x: .value("Date", ChartAxis.startOfDay(entry.date)),
+                                y: .value("Hematocrit", entry.value)
+                            )
+                            .symbol(.circle)
+                            .interpolationMethod(.monotone)
+                        }
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in
@@ -253,13 +293,23 @@ struct BloodTestView: View {
                 }
 
                 PutBarChartInContainer(title: "Platelet")  {
-                    Chart(pltSeries) { entry in
-                        LineMark (
-                            x: .value("Date", ChartAxis.startOfDay(entry.date)),
-                            y: .value("Platelet", entry.value)
-                        )
-                        .symbol(.circle)
-                        .interpolationMethod(.monotone)
+                    Chart {
+                        if !pltSeries.isEmpty {
+                            RectangleMark(
+                                yStart: .value("Plt Min", 150.0),
+                                yEnd:   .value("Plt Max", 400.0)
+                            )
+                            .foregroundStyle(.green.opacity(0.12))
+                        }
+
+                        ForEach(pltSeries) { entry in
+                            LineMark(
+                                x: .value("Date", ChartAxis.startOfDay(entry.date)),
+                                y: .value("Platelet", entry.value)
+                            )
+                            .symbol(.circle)
+                            .interpolationMethod(.monotone)
+                        }
                     }
                     .chartYAxis {
                         AxisMarks(position: .trailing, values: .automatic) { value in

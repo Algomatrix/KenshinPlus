@@ -26,14 +26,10 @@ struct KidneyTestView: View {
                 // ------- Uric Acid -------
                 PutBarChartInContainer(title: "Uric Acid") {
                     Chart {
-                        // Reference band for Uric Acid (3.6–7.0 mg/dL)
-                        if let (seriesStart, seriesEnd) = ChartAxis.bounds(uricAcid, date: \.date),
-                           !uricAcid.isEmpty {
+                        if !uricAcid.isEmpty {
                             RectangleMark(
-                                xStart: .value("Start", ChartAxis.startOfDay(seriesStart)),
-                                xEnd: .value("End", ChartAxis.startOfDay(seriesEnd)),
                                 yStart: .value("Uric Acid Min", 3.6),
-                                yEnd: .value("Uric Acid Max", 7.0)
+                                yEnd:   .value("Uric Acid Max", 7.0)
                             )
                             .foregroundStyle(.green.opacity(0.12))
                         }
@@ -68,14 +64,10 @@ struct KidneyTestView: View {
                 // ------- Creatinine -------
                 PutBarChartInContainer(title: "Creatinine") {
                     Chart {
-                        // Reference band for Creatinine (0.6–1.1 mg/dL)
-                        if let (seriesStart, seriesEnd) = ChartAxis.bounds(creatinine, date: \.date),
-                           !creatinine.isEmpty {
+                        if !creatinine.isEmpty {
                             RectangleMark(
-                                xStart: .value("Start", ChartAxis.startOfDay(seriesStart)),
-                                xEnd: .value("End", ChartAxis.startOfDay(seriesEnd)),
                                 yStart: .value("Creatinine Min", 0.6),
-                                yEnd: .value("Creatinine Max", 1.1)
+                                yEnd:   .value("Creatinine Max", 1.1)
                             )
                             .foregroundStyle(.green.opacity(0.12))
                         }

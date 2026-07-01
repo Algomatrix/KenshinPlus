@@ -36,6 +36,14 @@ struct BloodPressureView: View {
         let systolic = records.metricSamples(\.systolic)
 
         return Chart {
+            if !systolic.isEmpty {
+                RectangleMark(
+                    yStart: .value("Systolic Min", 90.0),
+                    yEnd:   .value("Systolic Max", 120.0)
+                )
+                .foregroundStyle(.green.opacity(0.12))
+            }
+
             ForEach(systolic) { bloodPressure in
                 LineMark (
                     x: .value("Date", ChartAxis.startOfDay(bloodPressure.date)),
@@ -68,6 +76,14 @@ struct BloodPressureView: View {
         let diastolic = records.metricSamples(\.diastolic)
 
         return Chart {
+            if !diastolic.isEmpty {
+                RectangleMark(
+                    yStart: .value("Diastolic Min", 60.0),
+                    yEnd:   .value("Diastolic Max", 80.0)
+                )
+                .foregroundStyle(.green.opacity(0.12))
+            }
+
             ForEach(diastolic) { bloodPressure in
                 // Create two bars for each blood pressure sample
                 LineMark (
