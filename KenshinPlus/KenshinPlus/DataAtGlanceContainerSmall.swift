@@ -73,22 +73,32 @@ struct DataHoldingContainer<Content: View>: View {
     let title: LocalizedStringResource
     @ViewBuilder var content: () -> Content
 
+    // Concentric radius: inner = outer - padding
+    private let outerRadius: CGFloat = 16
+    private let containerPadding: CGFloat = 12
+    private var innerRadius: CGFloat { outerRadius - containerPadding / 2 }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-                .padding(.bottom, 10)
 
-            // Content area with fixed height
+            // Content area with concentric inner rounding
             ZStack { content() }
                 .frame(height: 90)
+                .frame(maxWidth: .infinity)
+                .padding(8)
+                .background(
+                    RoundedRectangle(cornerRadius: innerRadius, style: .continuous)
+                        .fill(Color(.tertiarySystemBackground))
+                )
         }
-        .padding(12)
+        .padding(containerPadding)
         .background(
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: outerRadius, style: .continuous)
                 .fill(Color(.secondarySystemBackground))
-                .strokeBorder(style: .init(lineWidth: 0.2))
+                .strokeBorder(Color.primary.opacity(0.06), lineWidth: 0.5)
         )
     }
 }
