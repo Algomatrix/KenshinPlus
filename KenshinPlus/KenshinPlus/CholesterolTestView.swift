@@ -42,6 +42,14 @@ struct CholesterolTestView: View {
             }
             .padding()
         }
+        .background {
+            LinearGradient(
+                colors: [.orange.opacity(0.15), .clear],
+                startPoint: .top,
+                endPoint: .center
+            )
+            .ignoresSafeArea()
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 CitationInfoButton(citation: citation)
