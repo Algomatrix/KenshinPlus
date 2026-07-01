@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  DashboardView.swift
 //  KenshinPlus
 //
 //  Created by Shubham Shetkar on 2025/09/05.
@@ -25,8 +25,7 @@ struct DashboardView: View {
     var body: some View {
 //        let mockCheckupRecords = mockData.mockCheckupRecordSeries()
 
-        NavigationStack {
-            ScrollView {
+        ScrollView {
                 if records.isEmpty {
                     emptyStateHint
                 }
@@ -241,7 +240,6 @@ struct DashboardView: View {
                     }
                 }
             }
-        }
 //                .background(RoundedRectangle(cornerRadius: 12, style: .circular).fill(.tertiary.opacity(0.5)))
     }
 
@@ -388,6 +386,8 @@ struct DashboardView: View {
 
 
 #Preview {
-    DashboardView()
-        .modelContainer(for: CheckupRecord.self, inMemory: true)
+    NavigationStack {
+        DashboardView()
+    }
+    .modelContainer(for: CheckupRecord.self, inMemory: true)
 }
