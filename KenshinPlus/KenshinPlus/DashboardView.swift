@@ -42,7 +42,7 @@ struct DashboardView: View {
                         }
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
-                    .frame(height: 90)
+                    .frame(height: 120)
                     .onChange(of: currentInsightIndex) { _, _ in
                         // User swiped manually — pause auto-rotation for 8 seconds
                         insightPauseUntil = Date().addingTimeInterval(8)
@@ -454,12 +454,13 @@ struct DashboardView: View {
         if currentBMI > 0 && previousBMI > 0 {
             let delta = currentBMI - previousBMI
             if abs(delta) >= 0.3 {
-                let direction: String = delta < 0 ? "decreased" : "increased"
+                let prevStr = String(format: "%.1f", previousBMI)
+                let curStr = String(format: "%.1f", currentBMI)
                 insights.append(DashboardInsight(
                     icon: delta < 0 ? "arrow.down.right" : "arrow.up.right",
                     color: delta < 0 ? .green : .orange,
-                    title: "BMI \(direction)",
-                    message: String(format: "Your BMI went from %.1f to %.1f since your last checkup.", previousBMI, currentBMI)
+                    title: delta < 0 ? "BMI decreased" : "BMI increased",
+                    message: "Your BMI went from \(prevStr) to \(curStr) since your last checkup."
                 ))
             }
         }
@@ -468,12 +469,13 @@ struct DashboardView: View {
         if let curSys = current.systolic, let prevSys = previous.systolic {
             let delta = curSys - prevSys
             if abs(delta) >= 5 {
-                let direction: String = delta < 0 ? "lower" : "higher"
+                let prevStr = String(format: "%.0f", prevSys)
+                let curStr = String(format: "%.0f", curSys)
                 insights.append(DashboardInsight(
                     icon: delta < 0 ? "heart.fill" : "exclamationmark.heart.fill",
                     color: delta < 0 ? .green : .red,
-                    title: "Blood pressure is \(direction)",
-                    message: String(format: "Systolic changed from %.0f to %.0f mmHg.", prevSys, curSys)
+                    title: delta < 0 ? "Blood pressure is lower" : "Blood pressure is higher",
+                    message: "Systolic changed from \(prevStr) to \(curStr) mmHg."
                 ))
             }
         }
@@ -482,12 +484,13 @@ struct DashboardView: View {
         if let curA1c = current.hba1cNgspPercent, let prevA1c = previous.hba1cNgspPercent {
             let delta = curA1c - prevA1c
             if abs(delta) >= 0.1 {
-                let direction: String = delta < 0 ? "improved" : "increased"
+                let prevStr = String(format: "%.1f", prevA1c)
+                let curStr = String(format: "%.1f", curA1c)
                 insights.append(DashboardInsight(
                     icon: delta < 0 ? "checkmark.circle.fill" : "exclamationmark.triangle.fill",
                     color: delta < 0 ? .green : .orange,
-                    title: "HbA1c \(direction)",
-                    message: String(format: "HbA1c went from %.1f%% to %.1f%%.", prevA1c, curA1c)
+                    title: delta < 0 ? "HbA1c improved" : "HbA1c increased",
+                    message: "HbA1c went from \(prevStr)% to \(curStr)%."
                 ))
             }
         }
@@ -496,12 +499,13 @@ struct DashboardView: View {
         if let curLDL = current.ldl, let prevLDL = previous.ldl {
             let delta = curLDL - prevLDL
             if abs(delta) >= 5 {
-                let direction: String = delta < 0 ? "decreased" : "increased"
+                let prevStr = String(format: "%.0f", prevLDL)
+                let curStr = String(format: "%.0f", curLDL)
                 insights.append(DashboardInsight(
                     icon: delta < 0 ? "arrow.down.heart.fill" : "exclamationmark.triangle.fill",
                     color: delta < 0 ? .green : .orange,
-                    title: "LDL cholesterol \(direction)",
-                    message: String(format: "LDL went from %.0f to %.0f mg/dL.", prevLDL, curLDL)
+                    title: delta < 0 ? "LDL cholesterol decreased" : "LDL cholesterol increased",
+                    message: "LDL went from \(prevStr) to \(curStr) mg/dL."
                 ))
             }
         }
@@ -510,13 +514,14 @@ struct DashboardView: View {
         if let curHgb = current.hgbPerdL, let prevHgb = previous.hgbPerdL {
             let delta = curHgb - prevHgb
             if abs(delta) >= 0.5 {
-                let direction: String = delta < 0 ? "dropped" : "increased"
+                let prevStr = String(format: "%.1f", prevHgb)
+                let curStr = String(format: "%.1f", curHgb)
                 let color: Color = (curHgb < 13.5) ? .red : (delta < 0 ? .orange : .green)
                 insights.append(DashboardInsight(
                     icon: delta < 0 ? "arrow.down.circle.fill" : "arrow.up.circle.fill",
                     color: color,
-                    title: "Hemoglobin \(direction)",
-                    message: String(format: "Hemoglobin went from %.1f to %.1f g/dL.", prevHgb, curHgb)
+                    title: delta < 0 ? "Hemoglobin dropped" : "Hemoglobin increased",
+                    message: "Hemoglobin went from \(prevStr) to \(curStr) g/dL."
                 ))
             }
         }
@@ -525,13 +530,14 @@ struct DashboardView: View {
         if let curWBC = current.wbcThousandPeruL, let prevWBC = previous.wbcThousandPeruL {
             let delta = curWBC - prevWBC
             if abs(delta) >= 1.5 {
-                let direction: String = delta > 0 ? "elevated" : "decreased"
+                let prevStr = String(format: "%.1f", prevWBC)
+                let curStr = String(format: "%.1f", curWBC)
                 let color: Color = (curWBC > 11.0 || curWBC < 4.5) ? .red : .orange
                 insights.append(DashboardInsight(
                     icon: delta > 0 ? "exclamationmark.triangle.fill" : "arrow.down.circle.fill",
                     color: color,
-                    title: "WBC \(direction)",
-                    message: String(format: "WBC went from %.1f to %.1f thousand/µL.", prevWBC, curWBC)
+                    title: delta > 0 ? "WBC elevated" : "WBC decreased",
+                    message: "WBC went from \(prevStr) to \(curStr) thousand/µL."
                 ))
             }
         }
@@ -540,13 +546,14 @@ struct DashboardView: View {
         if let curAST = current.ast, let prevAST = previous.ast {
             let delta = curAST - prevAST
             if abs(delta) >= 10 {
-                let direction: String = delta > 0 ? "elevated" : "improved"
+                let prevStr = String(format: "%.0f", prevAST)
+                let curStr = String(format: "%.0f", curAST)
                 let color: Color = curAST > 40 ? .red : (delta > 0 ? .orange : .green)
                 insights.append(DashboardInsight(
                     icon: delta > 0 ? "exclamationmark.triangle.fill" : "checkmark.circle.fill",
                     color: color,
-                    title: "AST(GOT) \(direction)",
-                    message: String(format: "AST went from %.0f to %.0f U/L.", prevAST, curAST)
+                    title: delta > 0 ? "AST(GOT) elevated" : "AST(GOT) improved",
+                    message: "AST went from \(prevStr) to \(curStr) U/L."
                 ))
             }
         }
@@ -555,13 +562,14 @@ struct DashboardView: View {
         if let curALT = current.alt, let prevALT = previous.alt {
             let delta = curALT - prevALT
             if abs(delta) >= 10 {
-                let direction: String = delta > 0 ? "elevated" : "improved"
+                let prevStr = String(format: "%.0f", prevALT)
+                let curStr = String(format: "%.0f", curALT)
                 let color: Color = curALT > 56 ? .red : (delta > 0 ? .orange : .green)
                 insights.append(DashboardInsight(
                     icon: delta > 0 ? "exclamationmark.triangle.fill" : "checkmark.circle.fill",
                     color: color,
-                    title: "ALT(GPT) \(direction)",
-                    message: String(format: "ALT went from %.0f to %.0f U/L.", prevALT, curALT)
+                    title: delta > 0 ? "ALT(GPT) elevated" : "ALT(GPT) improved",
+                    message: "ALT went from \(prevStr) to \(curStr) U/L."
                 ))
             }
         }
@@ -570,13 +578,14 @@ struct DashboardView: View {
         if let curCr = current.creatinine, let prevCr = previous.creatinine {
             let delta = curCr - prevCr
             if abs(delta) >= 0.2 {
-                let direction: String = delta > 0 ? "elevated" : "improved"
+                let prevStr = String(format: "%.2f", prevCr)
+                let curStr = String(format: "%.2f", curCr)
                 let color: Color = curCr > 1.1 ? .red : (delta > 0 ? .orange : .green)
                 insights.append(DashboardInsight(
                     icon: delta > 0 ? "exclamationmark.triangle.fill" : "checkmark.circle.fill",
                     color: color,
-                    title: "Creatinine \(direction)",
-                    message: String(format: "Creatinine went from %.2f to %.2f mg/dL.", prevCr, curCr)
+                    title: delta > 0 ? "Creatinine elevated" : "Creatinine improved",
+                    message: "Creatinine went from \(prevStr) to \(curStr) mg/dL."
                 ))
             }
         }
@@ -608,8 +617,8 @@ struct DashboardView: View {
 struct DashboardInsight {
     let icon: String
     let color: Color
-    let title: String
-    let message: String
+    let title: LocalizedStringResource
+    let message: LocalizedStringResource
 }
 
 struct HeroInsightCard: View {
@@ -631,7 +640,7 @@ struct HeroInsightCard: View {
                 Text(insight.message)
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             
             Spacer(minLength: 0)
